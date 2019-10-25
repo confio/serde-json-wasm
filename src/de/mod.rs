@@ -20,7 +20,6 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// This type represents all possible errors that can occur when deserializing JSON data
 #[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[cfg_attr(not(feature = "custom-error-messages"), derive(Copy))]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[non_exhaustive]
 pub enum Error {
     /// EOF while parsing a list.
@@ -77,7 +76,7 @@ pub enum Error {
     /// Error with a custom message that was preserved.
     #[cfg(feature = "custom-error-messages")]
     CustomErrorWithMessage(
-        #[cfg_attr(feature = "defmt", defmt(Debug2Format))] heapless::String<64>,
+        String,
     ),
 }
 
@@ -683,7 +682,7 @@ impl de::Error for Error {
         {
             use core::fmt::Write;
 
-            let mut string = heapless::String::new();
+            let mut string = String::new();
             write!(string, "{:.64}", msg).unwrap();
             Error::CustomErrorWithMessage(string)
         }
@@ -758,7 +757,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use core::str::FromStr;
     use serde_derive::Deserialize;
 
     #[derive(Debug, Deserialize, PartialEq)]
@@ -1085,10 +1083,9 @@ mod tests {
         assert_eq!(
             crate::from_str::<Xy>(r#"[10]"#),
             Err(crate::de::Error::CustomErrorWithMessage(
-                heapless::String::from_str(
+                String::from(
                     "invalid length 1, expected tuple struct Xy with 2 elements"
                 )
-                .unwrap()
             ))
         );
         assert_eq!(
@@ -1196,7 +1193,7 @@ mod tests {
         assert_eq!(
             crate::de::Error::custom("something bad happened"),
             crate::de::Error::CustomErrorWithMessage(
-                heapless::String::from_str("something bad happened").unwrap()
+                String::from("something bad happened")
             )
         );
     }
@@ -1207,8 +1204,8 @@ mod tests {
         use serde::de::Error;
         assert_eq!(
             crate::de::Error::custom("0123456789012345678901234567890123456789012345678901234567890123 <- after here the message should be truncated"),
-            crate::de::Error::CustomErrorWithMessage(heapless::String::from_str(
-                "0123456789012345678901234567890123456789012345678901234567890123").unwrap()
+            crate::de::Error::CustomErrorWithMessage(String::from(
+                "0123456789012345678901234567890123456789012345678901234567890123")
             )
         );
     }

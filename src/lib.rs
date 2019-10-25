@@ -1,4 +1,4 @@
-//! [`serde-json`] for `no_std` programs
+//! [`serde-json`] for `wasm` programs
 //!
 //! [`serde-json`]: https://crates.io/crates/serde_json
 //!
@@ -59,7 +59,6 @@
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
 #![deny(warnings)]
-#![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod de;
 pub mod ser;
@@ -68,8 +67,4 @@ pub mod ser;
 pub use self::de::{from_slice, from_str};
 #[doc(inline)]
 pub use self::ser::to_slice;
-#[cfg(feature = "heapless")]
 pub use self::ser::{to_string, to_vec};
-
-#[cfg(feature = "heapless")]
-pub use heapless;
