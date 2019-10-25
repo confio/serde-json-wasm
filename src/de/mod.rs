@@ -1,7 +1,9 @@
 //! Deserialize JSON data to a Rust data structure
 
-use core::str::FromStr;
-use core::{fmt, str};
+use std::{
+    error, fmt,
+    str::{self, FromStr},
+};
 
 use serde::de::{self, Visitor};
 use serde::Serialize;
@@ -75,15 +77,66 @@ pub enum Error {
 
     /// Error with a custom message that was preserved.
     #[cfg(feature = "custom-error-messages")]
-    CustomErrorWithMessage(
-        String,
-    ),
+    CustomErrorWithMessage(String),
 }
 
-impl serde::de::StdError for Error {}
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "(use display)"
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Error::EofWhileParsingList => "EOF while parsing a list.",
+                Error::EofWhileParsingObject => "EOF while parsing an object.",
+                Error::EofWhileParsingString => "EOF while parsing a string.",
+                Error::EofWhileParsingValue => "EOF while parsing a JSON value.",
+                Error::ExpectedColon => "Expected this character to be a `':'`.",
+                Error::ExpectedListCommaOrEnd => {
+                    "Expected this character to be either a `','` or\
+                     a \
+                     `']'`."
+                }
+                Error::ExpectedObjectCommaOrEnd => {
+                    "Expected this character to be either a `','` \
+                     or a \
+                     `'}'`."
+                }
+                Error::ExpectedSomeIdent => {
+                    "Expected to parse either a `true`, `false`, or a \
+                     `null`."
+                }
+                Error::ExpectedSomeValue => "Expected this character to start a JSON value.",
+                Error::InvalidNumber => "Invalid number.",
+                Error::InvalidType => "Invalid type",
+                Error::InvalidUnicodeCodePoint => "Invalid unicode code point.",
+                Error::KeyMustBeAString => "Object key is not a string.",
+                Error::TrailingCharacters => {
+                    "JSON has non-whitespace trailing characters after \
+                     the \
+                     value."
+                }
+                Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
+                Error::CustomError => "JSON does not match deserializer’s expected format.",
+                #[cfg(feature = "custom-error-messages")]
+                Error::CustomErrorWithMessage(msg) => msg.as_str(),
+                _ => "Invalid JSON",
+            }
+        )
+    }
+}
 
 /// A structure that deserializes Rust values from JSON in a buffer.
-pub struct Deserializer<'b> {
+pub(crate) struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
 }
@@ -689,51 +742,6 @@ impl de::Error for Error {
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Error::EofWhileParsingList => "EOF while parsing a list.",
-                Error::EofWhileParsingObject => "EOF while parsing an object.",
-                Error::EofWhileParsingString => "EOF while parsing a string.",
-                Error::EofWhileParsingValue => "EOF while parsing a JSON value.",
-                Error::ExpectedColon => "Expected this character to be a `':'`.",
-                Error::ExpectedListCommaOrEnd => {
-                    "Expected this character to be either a `','` or\
-                     a \
-                     `']'`."
-                }
-                Error::ExpectedObjectCommaOrEnd => {
-                    "Expected this character to be either a `','` \
-                     or a \
-                     `'}'`."
-                }
-                Error::ExpectedSomeIdent => {
-                    "Expected to parse either a `true`, `false`, or a \
-                     `null`."
-                }
-                Error::ExpectedSomeValue => "Expected this character to start a JSON value.",
-                Error::InvalidNumber => "Invalid number.",
-                Error::InvalidType => "Invalid type",
-                Error::InvalidUnicodeCodePoint => "Invalid unicode code point.",
-                Error::KeyMustBeAString => "Object key is not a string.",
-                Error::TrailingCharacters => {
-                    "JSON has non-whitespace trailing characters after \
-                     the \
-                     value."
-                }
-                Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
-                Error::CustomError => "JSON does not match deserializer’s expected format.",
-                #[cfg(feature = "custom-error-messages")]
-                Error::CustomErrorWithMessage(msg) => msg.as_str(),
-                _ => "Invalid JSON",
-            }
-        )
-    }
-}
-
 /// Deserializes an instance of type `T` from bytes of JSON text
 /// Returns the value and the number of bytes consumed in the process
 pub fn from_slice<'a, T>(v: &'a [u8]) -> Result<(T, usize)>
@@ -1082,11 +1090,9 @@ mod tests {
         // wrong number of args
         assert_eq!(
             crate::from_str::<Xy>(r#"[10]"#),
-            Err(crate::de::Error::CustomErrorWithMessage(
-                String::from(
-                    "invalid length 1, expected tuple struct Xy with 2 elements"
-                )
-            ))
+            Err(crate::de::Error::CustomErrorWithMessage(String::from(
+                "invalid length 1, expected tuple struct Xy with 2 elements"
+            )))
         );
         assert_eq!(
             crate::from_str::<Xy>(r#"[10, 20, 30]"#),
@@ -1192,9 +1198,7 @@ mod tests {
         use serde::de::Error;
         assert_eq!(
             crate::de::Error::custom("something bad happened"),
-            crate::de::Error::CustomErrorWithMessage(
-                String::from("something bad happened")
-            )
+            crate::de::Error::CustomErrorWithMessage(String::from("something bad happened"))
         );
     }
 

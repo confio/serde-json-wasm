@@ -1,13 +1,15 @@
 //! Serialize a Rust data structure into JSON data
 
-use core::mem::MaybeUninit;
-use core::{fmt, str};
+use std::mem::MaybeUninit;
+use std::{error, fmt, str};
 
 use serde::ser;
 use serde::ser::SerializeStruct as _;
 use serde::Serialize;
 
 use self::map::SerializeMap;
+use std::vec::Vec;
+
 use self::seq::SerializeSeq;
 use self::struct_::{SerializeStruct, SerializeStructVariant};
 
@@ -38,7 +40,15 @@ impl From<u8> for Error {
     }
 }
 
-impl serde::ser::StdError for Error {}
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
+
+    fn description(&self) -> &str {
+        "(use display)"
+    }
+}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -47,49 +57,25 @@ impl fmt::Display for Error {
 }
 
 /// A structure that serializes Rust values as JSON into a buffer.
-pub struct Serializer<'a> {
-    buf: &'a mut [u8],
-    current_length: usize,
+pub struct Serializer {
+    buf: Vec<u8>,
 }
 
-impl<'a> Serializer<'a> {
+impl Serializer {
     /// Create a new `Serializer`
-    pub fn new(buf: &'a mut [u8]) -> Self {
-        Serializer {
-            buf,
-            current_length: 0,
-        }
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Serializer { buf: Vec::new() }
     }
 
-    /// Return the current amount of serialized data in the buffer
-    pub fn end(&self) -> usize {
-        self.current_length
-    }
-
-    fn push(&mut self, c: u8) -> Result<()> {
-        if self.current_length < self.buf.len() {
-            unsafe { self.push_unchecked(c) };
-            Ok(())
-        } else {
-            Err(Error::BufferFull)
-        }
-    }
-
-    unsafe fn push_unchecked(&mut self, c: u8) {
-        self.buf[self.current_length] = c;
-        self.current_length += 1;
+    pub(crate) fn push(&mut self, c: u8) -> Result<()> {
+        self.buf.push(c);
+        Ok(())
     }
 
     fn extend_from_slice(&mut self, other: &[u8]) -> Result<()> {
-        if self.current_length + other.len() > self.buf.len() {
-            // won't fit in the buf; don't modify anything and return an error
-            Err(Error::BufferFull)
-        } else {
-            for c in other {
-                unsafe { self.push_unchecked(*c) };
-            }
-            Ok(())
-        }
+        self.buf.extend_from_slice(other);
+        Ok(())
     }
 
     fn push_char(&mut self, c: char) -> Result<()> {
@@ -102,7 +88,7 @@ impl<'a> Serializer<'a> {
         // An excellent explanation is available at https://www.youtube.com/watch?v=HhIEDWmQS3w
 
         // Temporary storage for encoded a single char.
-        // A char is up to 4 bytes long wehn encoded to UTF-8.
+        // A char is up to 4 bytes long when encoded to UTF-8.
         let mut encoding_tmp = [0u8; 4];
 
         match c {
@@ -238,16 +224,16 @@ fn hex(c: u8) -> (u8, u8) {
     (hex_4bit(c >> 4), hex_4bit(c & 0x0F))
 }
 
-impl<'a, 'b: 'a> ser::Serializer for &'a mut Serializer<'b> {
+impl<'a> ser::Serializer for &'a mut Serializer {
     type Ok = ();
     type Error = Error;
-    type SerializeSeq = SerializeSeq<'a, 'b>;
-    type SerializeTuple = SerializeSeq<'a, 'b>;
-    type SerializeTupleStruct = SerializeSeq<'a, 'b>;
+    type SerializeSeq = SerializeSeq<'a>;
+    type SerializeTuple = SerializeSeq<'a>;
+    type SerializeTupleStruct = SerializeSeq<'a>;
     type SerializeTupleVariant = Unreachable;
-    type SerializeMap = SerializeMap<'a, 'b>;
-    type SerializeStruct = SerializeStruct<'a, 'b>;
-    type SerializeStructVariant = SerializeStructVariant<'a, 'b>;
+    type SerializeMap = SerializeMap<'a>;
+    type SerializeStruct = SerializeStruct<'a>;
+    type SerializeStructVariant = SerializeStructVariant<'a>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok> {
         if v {
@@ -450,12 +436,12 @@ impl<'a, 'b: 'a> ser::Serializer for &'a mut Serializer<'b> {
     }
 }
 
-struct StringCollector<'a, 'b> {
-    ser: &'a mut Serializer<'b>,
+struct StringCollector<'a> {
+    ser: &'a mut Serializer,
 }
 
-impl<'a, 'b> StringCollector<'a, 'b> {
-    pub fn new(ser: &'a mut Serializer<'b>) -> Self {
+impl<'a> StringCollector<'a> {
+    pub fn new(ser: &'a mut Serializer) -> Self {
         Self { ser }
     }
 
@@ -468,7 +454,7 @@ impl<'a, 'b> StringCollector<'a, 'b> {
     }
 }
 
-impl<'a, 'b> fmt::Write for StringCollector<'a, 'b> {
+impl<'a> fmt::Write for StringCollector<'a> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.do_write_str(s).or(Err(fmt::Error))
     }
@@ -487,20 +473,9 @@ pub fn to_vec<T>(value: &T) -> Result<Vec<u8>>
 where
     T: ser::Serialize + ?Sized,
 {
-    let mut buf = Vec::<u8>::new();
-    let len = to_slice(value, &mut buf)?;
-    buf.truncate(len);
-    Ok(buf)
-}
-
-/// Serializes the given data structure as a JSON byte vector into the provided buffer
-pub fn to_slice<T>(value: &T, buf: &mut [u8]) -> Result<usize>
-where
-    T: ser::Serialize + ?Sized,
-{
-    let mut ser = Serializer::new(buf);
+    let mut ser = Serializer::new();
     value.serialize(&mut ser)?;
-    Ok(ser.current_length)
+    Ok(ser.buf)
 }
 
 impl ser::Error for Error {
@@ -534,19 +509,17 @@ mod tests {
 
     #[test]
     fn array() {
-        let buf = &mut [0u8; 128];
-        let len = crate::to_slice(&[0, 1, 2], buf).unwrap();
-        assert_eq!(len, 7);
-        assert_eq!(&buf[..len], b"[0,1,2]");
+        let vec = crate::to_vec(&[0, 1, 2]).unwrap();
+        assert_eq!(vec.len(), 7);
+        assert_eq!(&vec[..], b"[0,1,2]");
         assert_eq!(&*crate::to_string(&[0, 1, 2]).unwrap(), "[0,1,2]");
     }
 
     #[test]
     fn bool() {
-        let buf = &mut [0u8; 128];
-        let len = crate::to_slice(&true, buf).unwrap();
-        assert_eq!(len, 4);
-        assert_eq!(&buf[..len], b"true");
+        let vec = crate::to_vec(&true).unwrap();
+        assert_eq!(vec.len(), 4);
+        assert_eq!(&vec[..], b"true");
 
         assert_eq!(&*crate::to_string(&true).unwrap(), "true");
     }
@@ -561,15 +534,9 @@ mod tests {
             Number,
         }
 
-        assert_eq!(
-            &*crate::to_string(&Type::Boolean).unwrap(),
-            r#""boolean""#
-        );
+        assert_eq!(&*crate::to_string(&Type::Boolean).unwrap(), r#""boolean""#);
 
-        assert_eq!(
-            &*crate::to_string(&Type::Number).unwrap(),
-            r#""number""#
-        );
+        assert_eq!(&*crate::to_string(&Type::Number).unwrap(), r#""number""#);
     }
 
     #[test]
@@ -585,62 +552,23 @@ mod tests {
         assert_eq!(&*crate::to_string("💣").unwrap(), r#""💣""#); // 4 byte character
 
         // " and \ must be escaped
-        assert_eq!(
-            &*crate::to_string("foo\"bar").unwrap(),
-            r#""foo\"bar""#
-        );
-        assert_eq!(
-            &*crate::to_string("foo\\bar").unwrap(),
-            r#""foo\\bar""#
-        );
+        assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
+        assert_eq!(&*crate::to_string("foo\\bar").unwrap(), r#""foo\\bar""#);
 
         // \b, \t, \n, \f, \r must be escaped in their two-character escaping
-        assert_eq!(
-            &*crate::to_string(" \u{0008} ").unwrap(),
-            r#"" \b ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{0009} ").unwrap(),
-            r#"" \t ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{000A} ").unwrap(),
-            r#"" \n ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{000C} ").unwrap(),
-            r#"" \f ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{000D} ").unwrap(),
-            r#"" \r ""#
-        );
+        assert_eq!(&*crate::to_string(" \u{0008} ").unwrap(), r#"" \b ""#);
+        assert_eq!(&*crate::to_string(" \u{0009} ").unwrap(), r#"" \t ""#);
+        assert_eq!(&*crate::to_string(" \u{000A} ").unwrap(), r#"" \n ""#);
+        assert_eq!(&*crate::to_string(" \u{000C} ").unwrap(), r#"" \f ""#);
+        assert_eq!(&*crate::to_string(" \u{000D} ").unwrap(), r#"" \r ""#);
 
         // U+0000 through U+001F is escaped using six-character \u00xx uppercase hexadecimal escape sequences
-        assert_eq!(
-            &*crate::to_string(" \u{0000} ").unwrap(),
-            r#"" \u0000 ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{0001} ").unwrap(),
-            r#"" \u0001 ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{0007} ").unwrap(),
-            r#"" \u0007 ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{000e} ").unwrap(),
-            r#"" \u000E ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{001D} ").unwrap(),
-            r#"" \u001D ""#
-        );
-        assert_eq!(
-            &*crate::to_string(" \u{001f} ").unwrap(),
-            r#"" \u001F ""#
-        );
+        assert_eq!(&*crate::to_string(" \u{0000} ").unwrap(), r#"" \u0000 ""#);
+        assert_eq!(&*crate::to_string(" \u{0001} ").unwrap(), r#"" \u0001 ""#);
+        assert_eq!(&*crate::to_string(" \u{0007} ").unwrap(), r#"" \u0007 ""#);
+        assert_eq!(&*crate::to_string(" \u{000e} ").unwrap(), r#"" \u000E ""#);
+        assert_eq!(&*crate::to_string(" \u{001D} ").unwrap(), r#"" \u001D ""#);
+        assert_eq!(&*crate::to_string(" \u{001f} ").unwrap(), r#"" \u001F ""#);
     }
 
     #[test]
@@ -816,10 +744,7 @@ mod tests {
         }
         let a = A::A { x: 54, y: 720 };
 
-        assert_eq!(
-            &*crate::to_string(&a).unwrap(),
-            r#"{"A":{"x":54,"y":720}}"#
-        );
+        assert_eq!(&*crate::to_string(&a).unwrap(), r#"{"A":{"x":54,"y":720}}"#);
     }
 
     #[test]
