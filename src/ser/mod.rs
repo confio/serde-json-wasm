@@ -799,4 +799,47 @@ mod tests {
         let sd3 = SimpleDecimal(22_222.777);
         assert_eq!(&*crate::to_string(&sd3).unwrap(), r#"22222.78"#);
     }
+
+    #[test]
+    fn serialize_embedded_enum() {
+        #[derive(Debug, Serialize, PartialEq)]
+        #[serde(rename_all = "lowercase")]
+        pub enum MyResult {
+            Ok(Response),
+            Err(String),
+        }
+
+        #[derive(Debug, Serialize, PartialEq)]
+        pub struct Response {
+            pub log: Option<String>,
+            pub count: i64,
+            pub list: Vec<u32>,
+        }
+
+        let json =
+            crate::to_string(&MyResult::Err("some error".to_string())).expect("encode err enum");
+        assert_eq!(json, r#"{"err":"some error"}"#.to_string());
+
+        let json = crate::to_string(&MyResult::Ok(Response {
+            log: Some("log message".to_string()),
+            count: 137,
+            list: Vec::new(),
+        }))
+        .expect("encode ok enum");
+        assert_eq!(
+            json,
+            r#"{"ok":{"log":"log message","count":137,"list":[]}}"#.to_string()
+        );
+
+        let json = crate::to_string(&MyResult::Ok(Response {
+            log: None,
+            count: 137,
+            list: vec![18u32, 34, 12],
+        }))
+        .expect("encode ok enum");
+        assert_eq!(
+            json,
+            r#"{"ok":{"log":null,"count":137,"list":[18,34,12]}}"#.to_string()
+        );
+    }
 }
