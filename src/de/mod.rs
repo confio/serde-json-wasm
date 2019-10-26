@@ -151,15 +151,6 @@ impl<'a> Deserializer<'a> {
         self.index += 1;
     }
 
-    /// Check whether there is any unexpected data left in the buffer
-    /// and return the amount of data consumed
-    pub fn end(&mut self) -> Result<usize> {
-        match self.parse_whitespace() {
-            Some(_) => Err(Error::TrailingCharacters),
-            None => Ok(self.index),
-        }
-    }
-
     fn end_seq(&mut self) -> Result<()> {
         match self.parse_whitespace().ok_or(Error::EofWhileParsingList)? {
             b']' => {
@@ -520,12 +511,20 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         }
     }
 
-    /// Unsupported. String is not available in no-std.
-    fn deserialize_string<V>(self, _visitor: V) -> Result<V::Value>
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
+
+        match peek {
+            b'"' => {
+                self.eat_char();
+                let str = self.parse_str()?.to_string();
+                visitor.visit_string(str)
+            }
+            _ => Err(Error::InvalidType),
+        }
     }
 
     /// Unsupported
@@ -727,36 +726,24 @@ impl de::Error for Error {
     where
         T: fmt::Display,
     {
-        #[cfg(not(feature = "custom-error-messages"))]
-        {
-            Error::CustomError
-        }
-        #[cfg(feature = "custom-error-messages")]
-        {
-            use core::fmt::Write;
-
-            let mut string = String::new();
-            write!(string, "{:.64}", msg).unwrap();
-            Error::CustomErrorWithMessage(string)
-        }
+        unreachable!()
     }
 }
 
 /// Deserializes an instance of type `T` from bytes of JSON text
 /// Returns the value and the number of bytes consumed in the process
-pub fn from_slice<'a, T>(v: &'a [u8]) -> Result<(T, usize)>
+pub fn from_slice<'a, T>(v: &'a [u8]) -> Result<T>
 where
     T: de::Deserialize<'a>,
 {
     let mut de = Deserializer::new(v);
     let value = de::Deserialize::deserialize(&mut de)?;
-    let length = de.end()?;
 
-    Ok((value, length))
+    Ok(value)
 }
 
 /// Deserializes an instance of type T from a string of JSON text
-pub fn from_str<'a, T>(s: &'a str) -> Result<(T, usize)>
+pub fn from_str<'a, T>(s: &'a str) -> Result<T>
 where
     T: de::Deserialize<'a>,
 {
@@ -779,7 +766,7 @@ mod tests {
 
     #[test]
     fn array() {
-        assert_eq!(crate::from_str::<[i32; 0]>("[]"), Ok(([], 2)));
+        assert_eq!(crate::from_str::<[i32; 0]>("[]"), Ok([]));
         assert_eq!(crate::from_str("[0, 1, 2]"), Ok(([0, 1, 2], 9)));
 
         // errors
@@ -1025,7 +1012,7 @@ mod tests {
 
     #[test]
     fn test_unit() {
-        assert_eq!(crate::from_str::<()>(r#"null"#), Ok(((), 4)));
+        assert_eq!(crate::from_str::<()>(r#"null"#), Ok(()));
     }
 
     #[test]
@@ -1033,7 +1020,7 @@ mod tests {
         #[derive(Deserialize, Debug, PartialEq)]
         struct A(pub u32);
 
-        assert_eq!(crate::from_str::<A>(r#"54"#), Ok((A(54), 2)));
+        assert_eq!(crate::from_str::<A>(r#"54"#), Ok(A(54)));
     }
 
     #[test]
@@ -1044,7 +1031,7 @@ mod tests {
         }
         let a = A::A(54);
         let x = crate::from_str::<A>(r#"{"A":54}"#);
-        assert_eq!(x, Ok((a, 8)));
+        assert_eq!(x, Ok(a));
     }
 
     #[test]
@@ -1055,7 +1042,7 @@ mod tests {
         }
         let a = A::A { x: 54, y: 720 };
         let x = crate::from_str::<A>(r#"{"A": {"x":54,"y":720 } }"#);
-        assert_eq!(x, Ok((a, 25)));
+        assert_eq!(x, Ok(a));
     }
 
     #[test]
@@ -1243,60 +1230,64 @@ mod tests {
             #[serde(borrow)]
             description: Option<&'a str>,
             href: &'a str,
+            owned: String,
         }
 
         assert_eq!(
             crate::from_str::<Thing<'_>>(
                 r#"
-                    {
-                    "type": "thing",
-                    "properties": {
-                        "temperature": {
-                        "type": "number",
-                        "unit": "celsius",
-                        "description": "An ambient temperature sensor",
-                        "href": "/properties/temperature"
-                        },
-                        "humidity": {
-                        "type": "number",
-                        "unit": "percent",
-                        "href": "/properties/humidity"
-                        },
-                        "led": {
-                        "type": "boolean",
-                        "description": "A red LED",
-                        "href": "/properties/led"
-                        }
-                    }
-                    }
-                    "#
+{
+  "type": "thing",
+  "properties": {
+    "temperature": {
+      "type": "number",
+      "unit": "celsius",
+      "description": "An ambient temperature sensor",
+      "href": "/properties/temperature",
+      "owned": "owned"
+    },
+    "humidity": {
+      "type": "number",
+      "unit": "percent",
+      "href": "/properties/humidity",
+      "owned": "owned"
+    },
+    "led": {
+      "type": "boolean",
+      "description": "A red LED",
+      "href": "/properties/led",
+      "owned": "owned"
+    }
+  }
+}
+"#
             ),
-            Ok((
-                Thing {
-                    properties: Properties {
-                        temperature: Property {
-                            ty: Type::Number,
-                            unit: Some("celsius"),
-                            description: Some("An ambient temperature sensor"),
-                            href: "/properties/temperature",
-                        },
-                        humidity: Property {
-                            ty: Type::Number,
-                            unit: Some("percent"),
-                            description: None,
-                            href: "/properties/humidity",
-                        },
-                        led: Property {
-                            ty: Type::Boolean,
-                            unit: None,
-                            description: Some("A red LED"),
-                            href: "/properties/led",
-                        },
+            Ok(Thing {
+                properties: Properties {
+                    temperature: Property {
+                        ty: Type::Number,
+                        unit: Some("celcius"),
+                        description: Some("An ambient temperature sensor"),
+                        href: "/properties/temperature",
+                        owned: "owned".into(),
                     },
-                    ty: Type::Thing,
+                    humidity: Property {
+                        ty: Type::Number,
+                        unit: Some("percent"),
+                        description: None,
+                        href: "/properties/humidity",
+                        owned: "owned".into(),
+                    },
+                    led: Property {
+                        ty: Type::Boolean,
+                        unit: None,
+                        description: Some("A red LED"),
+                        href: "/properties/led",
+                        owned: "owned".into(),
+                    },
                 },
-                852
-            ))
+                ty: Type::Thing,
+            })
         )
     }
 }
