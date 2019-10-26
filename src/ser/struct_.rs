@@ -37,7 +37,7 @@ impl<'a> ser::SerializeStruct for SerializeStruct<'a> {
     }
 
     fn end(self) -> Result<Self::Ok> {
-        self.ser.extend_from_slice(b"}}")?;
+        self.ser.extend_from_slice(b"}")?;
         Ok(())
     }
 }

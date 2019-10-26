@@ -769,7 +769,7 @@ mod tests {
 
         let a1 = A(42, Some("A string"), 720, false);
         let serialized = crate::to_string(&a1).unwrap();
-        let (a2, _size): (A<'_>, usize) = crate::from_str(&serialized).unwrap();
+        let a2: A<'_> = crate::from_str(&serialized).unwrap();
         assert_eq!(a1, a2);
     }
 
