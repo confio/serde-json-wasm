@@ -1127,6 +1127,156 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_optional_vector() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        pub struct Response {
+            pub log: Option<String>,
+            pub messages: Vec<Msg>,
+        }
+
+        #[derive(Debug, Deserialize, PartialEq, serde_derive::Serialize)]
+        pub struct Msg {
+            pub name: String,
+        }
+
+        #[derive(Debug, Deserialize, PartialEq)]
+        pub struct OptIn {
+            pub name: Option<String>,
+        }
+
+        let m: Msg = crate::from_str(
+            r#"{
+          "name": "one"
+        }"#,
+        )
+        .expect("simple");
+        assert_eq!(
+            m,
+            Msg {
+                name: "one".to_string()
+            }
+        );
+
+        let o: OptIn = crate::from_str(
+            r#"{
+          "name": "two"
+        }"#,
+        )
+        .expect("opt");
+        assert_eq!(
+            o,
+            OptIn {
+                name: Some("two".to_string())
+            }
+        );
+
+        let res: Response = crate::from_str(
+            r#"{
+          "log": "my log",
+          "messages": [{"name": "one"}]
+        }"#,
+        )
+        .expect("fud");
+        assert_eq!(
+            res,
+            Response {
+                log: Some("my log".to_string()),
+                messages: vec![Msg {
+                    name: "one".to_string()
+                }],
+            }
+        );
+
+        let res: Response = crate::from_str(r#"{"log": null,"messages": []}"#).expect("fud");
+        assert_eq!(
+            res,
+            Response {
+                log: None,
+                messages: Vec::new()
+            }
+        );
+    }
+
+    #[test]
+    fn deserialize_embedded_enum() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        #[serde(rename_all = "lowercase")]
+        pub enum MyResult {
+            Ok(Response),
+            Err(String),
+        }
+
+        #[derive(Debug, Deserialize, PartialEq)]
+        pub struct Response {
+            pub log: Option<String>,
+            pub messages: Vec<Msg>,
+        }
+
+        #[derive(Debug, Deserialize, PartialEq)]
+        pub struct Msg {
+            pub name: String,
+            pub amount: Option<String>,
+        }
+
+        let res: MyResult = crate::from_str(
+            r#"{
+                "ok": {
+                    "log": "hello",
+                    "messages": [{
+                        "name": "fred",
+                        "amount": "15"
+                    }]
+                }
+            }"#,
+        )
+        .expect("goo");
+        assert_eq!(
+            res,
+            MyResult::Ok(Response {
+                log: Some("hello".to_string()),
+                messages: vec![Msg {
+                    name: "fred".to_string(),
+                    amount: Some("15".to_string())
+                }]
+            })
+        );
+
+        let res: MyResult = crate::from_str(
+            r#"{
+          "ok": {
+            "log": "hello",
+            "messages": []
+          }
+        }"#,
+        )
+        .expect("goo");
+        assert_eq!(
+            res,
+            MyResult::Ok(Response {
+                log: Some("hello".to_string()),
+                messages: Vec::new()
+            })
+        );
+
+        let res: MyResult = crate::from_str(
+            r#"{
+          "ok": {
+            "log": null,
+            "messages": []
+          }
+        }"#,
+        )
+        .expect("goo");
+        assert_eq!(
+            res,
+            MyResult::Ok(Response {
+                log: None,
+                messages: Vec::new()
+            })
+        );
+    }
+
+    #[test]
     fn preserve_short_error_message() {
         use serde::de::Error;
         assert_eq!(
@@ -1164,37 +1314,38 @@ mod tests {
             #[serde(borrow)]
             description: Option<&'a str>,
             href: &'a str,
-            owned: String,
+            owned: Option<String>,
         }
 
         assert_eq!(
             crate::from_str::<Thing<'_>>(
                 r#"
-{
-  "type": "thing",
-  "properties": {
-    "temperature": {
-      "type": "number",
-      "unit": "celsius",
-      "description": "An ambient temperature sensor",
-      "href": "/properties/temperature",
-      "owned": "owned"
-    },
-    "humidity": {
-      "type": "number",
-      "unit": "percent",
-      "href": "/properties/humidity",
-      "owned": "owned"
-    },
-    "led": {
-      "type": "boolean",
-      "description": "A red LED",
-      "href": "/properties/led",
-      "owned": "owned"
-    }
-  }
-}
-"#
+                    {
+                        "type": "thing",
+                        "properties": {
+                            "temperature": {
+                                "type": "number",
+                                "unit": "celsius",
+                                "description": "An ambient temperature sensor",
+                                "href": "/properties/temperature",
+                                "owned": "own temperature"
+                            },
+                            "humidity": {
+                                "type": "number",
+                                "unit": "percent",
+                                "href": "/properties/humidity",
+                                "owned": null
+                            },
+                            "led": {
+                                "type": "boolean",
+                                "unit": null,
+                                "description": "A red LED",
+                                "href": "/properties/led",
+                                "owned": "own led"
+                            }
+                        }
+                    }
+                "#
             ),
             Ok(Thing {
                 properties: Properties {
@@ -1203,21 +1354,21 @@ mod tests {
                         unit: Some("celsius"),
                         description: Some("An ambient temperature sensor"),
                         href: "/properties/temperature",
-                        owned: "owned".into(),
+                        owned: Some("own temperature".to_string()),
                     },
                     humidity: Property {
                         ty: Type::Number,
                         unit: Some("percent"),
                         description: None,
                         href: "/properties/humidity",
-                        owned: "owned".into(),
+                        owned: None,
                     },
                     led: Property {
                         ty: Type::Boolean,
                         unit: None,
                         description: Some("A red LED"),
                         href: "/properties/led",
-                        owned: "owned".into(),
+                        owned: Some("own led".to_string()),
                     },
                 },
                 ty: Type::Thing,
