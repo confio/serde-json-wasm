@@ -8,7 +8,7 @@ use std::{
 use serde::de::{self, Visitor};
 use serde::Serialize;
 
-use self::enum_::{UnitVariantAccess, VariantAccess};
+use self::enum_::{VariantAccess, UnitVariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
 
