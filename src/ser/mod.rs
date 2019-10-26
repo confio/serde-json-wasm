@@ -505,6 +505,7 @@ impl ser::SerializeTupleVariant for Unreachable {
 
 #[cfg(test)]
 mod tests {
+    use serde::Deserialize;
     use serde_derive::Serialize;
 
     #[test]
@@ -802,44 +803,50 @@ mod tests {
 
     #[test]
     fn serialize_embedded_enum() {
-        #[derive(Debug, Serialize, PartialEq)]
+        #[derive(Debug, Deserialize, Serialize, PartialEq)]
         #[serde(rename_all = "lowercase")]
         pub enum MyResult {
             Ok(Response),
             Err(String),
         }
 
-        #[derive(Debug, Serialize, PartialEq)]
+        #[derive(Debug, Deserialize, Serialize, PartialEq)]
         pub struct Response {
             pub log: Option<String>,
             pub count: i64,
             pub list: Vec<u32>,
         }
 
-        let json =
-            crate::to_string(&MyResult::Err("some error".to_string())).expect("encode err enum");
+        let err_input = MyResult::Err("some error".to_string());
+        let json = crate::to_string(&err_input).expect("encode err enum");
         assert_eq!(json, r#"{"err":"some error"}"#.to_string());
+        let loaded = crate::from_str(&json).expect("re-load err enum");
+        assert_eq!(err_input, loaded);
 
-        let json = crate::to_string(&MyResult::Ok(Response {
+        let empty_list = MyResult::Ok(Response {
             log: Some("log message".to_string()),
             count: 137,
             list: Vec::new(),
-        }))
-        .expect("encode ok enum");
+        });
+        let json = crate::to_string(&empty_list).expect("encode ok enum");
         assert_eq!(
             json,
             r#"{"ok":{"log":"log message","count":137,"list":[]}}"#.to_string()
         );
+        let loaded = crate::from_str(&json).expect("re-load ok enum");
+        assert_eq!(empty_list, loaded);
 
-        let json = crate::to_string(&MyResult::Ok(Response {
+        let full_list = MyResult::Ok(Response {
             log: None,
             count: 137,
             list: vec![18u32, 34, 12],
-        }))
-        .expect("encode ok enum");
+        });
+        let json = crate::to_string(&full_list).expect("encode ok enum");
         assert_eq!(
             json,
             r#"{"ok":{"log":null,"count":137,"list":[18,34,12]}}"#.to_string()
         );
+        let loaded = crate::from_str(&json).expect("re-load ok enum");
+        assert_eq!(full_list, loaded);
     }
 }

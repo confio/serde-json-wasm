@@ -8,7 +8,7 @@ use std::{
 use serde::de::{self, Visitor};
 use serde::Serialize;
 
-use self::enum_::{VariantAccess, UnitVariantAccess};
+use self::enum_::{UnitVariantAccess, VariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
 
@@ -1072,6 +1072,18 @@ mod tests {
                 status: true,
                 point: (1, 2, 3)
             })
+        );
+
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Xy(i8, i8);
+
+        match crate::from_str::<Xy>(r#"[10]"#) {
+            Err(super::Error::Custom(_)) => {}
+            _ => panic!("expect custom error"),
+        }
+        assert_eq!(
+            crate::from_str::<Xy>(r#"[10, 20, 30]"#),
+            Err(crate::de::Error::TrailingCharacters)
         );
     }
 
