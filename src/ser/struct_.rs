@@ -77,7 +77,10 @@ impl<'a> ser::SerializeStructVariant for SerializeStructVariant<'a> {
     }
 
     fn end(self) -> Result<Self::Ok> {
-        self.ser.extend_from_slice(b"}}")?;
+        // close struct
+        self.de.buf.push(b'}');
+        // close surrounding enum
+        self.de.buf.push(b'}');
         Ok(())
     }
 }
