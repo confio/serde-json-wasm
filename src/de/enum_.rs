@@ -103,6 +103,17 @@ impl<'de, 'a> de::VariantAccess<'de> for VariantAccess<'a, 'de> {
     where
         V: de::Visitor<'de>,
     {
-        de::Deserializer::deserialize_struct(self.de, "", fields, visitor)
+        let value = de::Deserializer::deserialize_struct(&mut *self.de, "", fields, visitor)?;
+        match self
+            .de
+            .parse_whitespace()
+            .ok_or(Error::EofWhileParsingValue)?
+            {
+                b'}' => {
+                    self.de.eat_char();
+                    Ok(value)
+                }
+                _ => Err(Error::ExpectedSomeValue),
+            }
     }
 }
