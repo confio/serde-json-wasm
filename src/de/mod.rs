@@ -1139,6 +1139,20 @@ mod tests {
         );
     }
 
+    #[derive(Deserialize, Clone, Debug, PartialEq)]
+    pub struct Address(pub String);
+
+    #[derive(Deserialize, Clone, Debug, PartialEq)]
+    pub struct NewtypeDemo {
+        pub address: Address,
+    }
+
+    #[test]
+    fn newtypes() {
+        let c: NewtypeDemo = crate::from_str(r#"{"address": "johnny"}"#).unwrap();
+        assert_eq!(Address("johnny".to_string()), c.address);
+    }
+
     #[test]
     fn deserialize_optional_vector() {
         #[derive(Debug, Deserialize, PartialEq)]
