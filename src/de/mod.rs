@@ -138,7 +138,7 @@ impl fmt::Display for Error {
 }
 
 /// A structure that deserializes Rust values from JSON in a buffer.
-pub(crate) struct Deserializer<'b> {
+pub struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
 }

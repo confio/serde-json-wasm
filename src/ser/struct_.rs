@@ -78,9 +78,10 @@ impl<'a> ser::SerializeStructVariant for SerializeStructVariant<'a> {
 
     fn end(self) -> Result<Self::Ok> {
         // close struct
-        self.de.buf.push(b'}');
+        self.ser.push(b'}')?;
         // close surrounding enum
-        self.de.buf.push(b'}');
+        self.ser.push(b'}')?;
+
         Ok(())
     }
 }
