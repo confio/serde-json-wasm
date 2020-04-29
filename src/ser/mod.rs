@@ -574,6 +574,11 @@ mod tests {
         assert_eq!(&*crate::to_string(" \u{000e} ").unwrap(), r#"" \u000E ""#);
         assert_eq!(&*crate::to_string(" \u{001D} ").unwrap(), r#"" \u001D ""#);
         assert_eq!(&*crate::to_string(" \u{001f} ").unwrap(), r#"" \u001F ""#);
+        assert_eq!(&*crate::to_string("").unwrap(), r#""""#);
+
+        // " and \ must be escaped
+        assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
+        assert_eq!(&*crate::to_string("foo\\bar").unwrap(), r#""foo\\bar""#);
     }
 
     #[test]
