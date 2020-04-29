@@ -61,11 +61,15 @@ pub struct Serializer {
     buf: Vec<u8>,
 }
 
+/// Number of bytes reserved by default for the output JSON
+static INITIAL_CAPACITY: usize = 1024;
+
 impl Serializer {
     /// Create a new `Serializer`
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Serializer { buf: Vec::new() }
+    fn new() -> Self {
+        Serializer {
+            buf: Vec::with_capacity(INITIAL_CAPACITY),
+        }
     }
 
     pub(crate) fn push(&mut self, c: u8) -> Result<()> {
