@@ -579,6 +579,13 @@ mod tests {
         // " and \ must be escaped
         assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
         assert_eq!(&*crate::to_string("foo\\bar").unwrap(), r#""foo\\bar""#);
+
+        // \b, \t, \n, \f, \r must be escaped in their two-character escaping
+        assert_eq!(&*crate::to_string(" \u{0008} ").unwrap(), r#"" \b ""#);
+        assert_eq!(&*crate::to_string(" \u{0009} ").unwrap(), r#"" \t ""#);
+        assert_eq!(&*crate::to_string(" \u{000A} ").unwrap(), r#"" \n ""#);
+        assert_eq!(&*crate::to_string(" \u{000C} ").unwrap(), r#"" \f ""#);
+        assert_eq!(&*crate::to_string(" \u{000D} ").unwrap(), r#"" \r ""#);
     }
 
     #[test]
