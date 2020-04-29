@@ -554,7 +554,7 @@ mod tests {
         assert_eq!(&*crate::to_string("৬").unwrap(), r#""৬""#);
         // assert_eq!(&*crate::to_string("\u{A0}").unwrap(), r#"" ""#); // non-breaking space
         assert_eq!(&*crate::to_string("ℝ").unwrap(), r#""ℝ""#); // 3 byte character
-        assert_eq!(&*crate::to_string("💣").unwrap(), r#""💣""#); // 4 byte character
+        assert_eq!(&*crate::to_string("💣").unwrap(), r#""💣""#); // surregate pair
 
         // " and \ must be escaped
         assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
