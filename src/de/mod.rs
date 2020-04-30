@@ -768,6 +768,60 @@ mod tests {
     }
 
     #[test]
+    fn parse_whitespace() {
+        assert_eq!(crate::from_str(" true"), Ok(true));
+        assert_eq!(crate::from_str("\ttrue"), Ok(true));
+        assert_eq!(crate::from_str("\ntrue"), Ok(true));
+        assert_eq!(crate::from_str("\rtrue"), Ok(true));
+        assert_eq!(crate::from_str("\n\rtrue"), Ok(true));
+        assert_eq!(crate::from_str("\r\ntrue"), Ok(true));
+        assert_eq!(crate::from_str("true "), Ok(true));
+        assert_eq!(crate::from_str("true\t"), Ok(true));
+        assert_eq!(crate::from_str("true\n"), Ok(true));
+        assert_eq!(crate::from_str("true\r"), Ok(true));
+        assert_eq!(crate::from_str("true\n\r"), Ok(true));
+        assert_eq!(crate::from_str("true\r\n"), Ok(true));
+
+        assert_eq!(crate::from_str("[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str(" [4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("\t[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("\n[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("\r[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("\n\r[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("\r\n[4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[ 4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[\t4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[\n4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[\r4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[\n\r4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[\r\n4,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4 ,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4\t,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4\n,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4\r,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4\n\r,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4\r\n,5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4, 5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,\t5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,\n5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,\r5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,\n\r5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,\r\n5]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5 ]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5\t]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5\n]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5\r]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5\n\r]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5\r\n]"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5] "), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5]\t"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5]\n"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5]\r"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5]\n\r"), Ok([4, 5]));
+        assert_eq!(crate::from_str("[4,5]\r\n"), Ok([4, 5]));
+    }
+
+    #[test]
     fn array() {
         assert_eq!(crate::from_str::<[i32; 0]>("[]"), Ok([]));
         assert_eq!(crate::from_str("[0, 1, 2]"), Ok([0, 1, 2]));
