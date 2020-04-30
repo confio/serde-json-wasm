@@ -873,6 +873,7 @@ mod tests {
 
     #[test]
     fn str() {
+        // simple
         assert_eq!(from_str(r#" "hello" "#), Ok("hello"));
         assert_eq!(from_str(r#" "" "#), Ok(""));
         assert_eq!(from_str(r#" " " "#), Ok(" "));
@@ -907,6 +908,10 @@ mod tests {
         assert_eq!(from_str(r#" "" "#), Ok(String::from("")));
         assert_eq!(from_str(r#" " " "#), Ok(String::from(" ")));
         assert_eq!(from_str(r#" "👏" "#), Ok(String::from("👏")));
+
+        // escaped " in the string content
+        // (note: no unescaping is performed, as documented as a known issue in lib.rs)
+        assert_eq!(from_str(r#" "foo\"bar" "#), Ok(String::from(r#"foo\"bar"#)));
     }
 
     #[test]
