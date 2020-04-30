@@ -896,6 +896,17 @@ mod tests {
         assert_eq!(from_str(r#" "foo bar\\\\\\" "#), Ok(r#"foo bar\\\\\\"#));
         assert_eq!(from_str(r#" "foo bar\\\\\\\\" "#), Ok(r#"foo bar\\\\\\\\"#));
         assert_eq!(from_str(r#" "\\" "#), Ok(r#"\\"#));
+        assert_eq!(from_str(r#" "" "#), Ok(""));
+        assert_eq!(from_str(r#" " " "#), Ok(" "));
+        assert_eq!(from_str(r#" "👏" "#), Ok("👏"));
+    }
+
+    #[test]
+    fn string() {
+        assert_eq!(from_str(r#" "hello" "#), Ok(String::from("hello")));
+        assert_eq!(from_str(r#" "" "#), Ok(String::from("")));
+        assert_eq!(from_str(r#" " " "#), Ok(String::from(" ")));
+        assert_eq!(from_str(r#" "👏" "#), Ok(String::from("👏")));
     }
 
     #[test]
