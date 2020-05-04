@@ -401,7 +401,11 @@ macro_rules! deserialize_fromstr {
 impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
 
-    /// Unsupported. Can’t parse a value without knowing its expected type.
+    /// Unsupported. We rely on typed deserialization methods, even if a JSON
+    /// has enough type information to detect types in many cases.
+    ///
+    /// See https://serde.rs/impl-deserialize.html to learn more about the differentiation
+    /// between `deserialize_{type}` and `deserialize_any`.
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
