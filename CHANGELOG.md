@@ -14,6 +14,13 @@ project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Strings are now escaped during serialization (#10)
+- `from_str`/`from_slice` now work for `T: DeserializeOwned` instead of
+  `T: Deserialize<'de>`, making it impossible to deserialize into non-owned
+  reference fields. This is necessary since string unescaping requires creating
+  a mutated copy of the source data and only JSON strings without escape
+  sequences can be deserialized copy-free. The same limitation applies to
+  serde_json, where the problem shows up at
+  [runtime instead of compile time](https://github.com/serde-rs/json/issues/530).
 
 ## [0.1.3] - 2020-03-12
 
