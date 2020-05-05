@@ -38,7 +38,7 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
                     out.push(HORIZONTAL_TAB);
                     open = false;
                 }
-                _ => panic!("unsupported escape sequence"),
+                _ => return Err(Error::InvalidEscape),
             }
         } else if *byte == b'\\' {
             open = true;
@@ -114,5 +114,17 @@ mod tests {
         assert_eq!(ue(br#" \t \n \r "#), " \t \n \r ".to_string());
         assert_eq!(ue(br#" \"\"\" "#), " \"\"\" ".to_string());
         assert_eq!(ue(br#" \t\n\r "#), " \t\n\r ".to_string());
+    }
+
+    #[test]
+    fn unescape_fails_for_invalid_escape_sequence() {
+        assert_eq!(unescape(br#" \ "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \a "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \N "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \- "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \' "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \x "#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \x08 "#), Err(Error::InvalidEscape)); // valid in Rust and ES6 but not JSON
+        assert_eq!(unescape(br#" \u{7A} "#), Err(Error::InvalidEscape)); // valid in ES6 but not JSON
     }
 }
