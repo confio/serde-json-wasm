@@ -1,5 +1,5 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>", "Ethan Frey <ethanfrey@noreply.github.com"]
+authors = ["Jorge Aparicio <jorge@japaric.io>", "Ethan Frey <ethanfrey@noreply.github.com", "Simon Warta <webmaster128@noreply.github.com"]
 categories = ["wasm"]
 description = "serde-json for wasm programs"
 documentation = "https://docs.rs/serde-json-wasm"
@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 name = "serde-json-wasm"
 readme = "README.md"
 repository = "https://github.com/CosmWasm/serde-json-wasm"
-version = "0.1.3"
+version = "0.2.0-dev"
 exclude = ["ci/*", ".gitignore", ".cargo", ".travis.yml"]
 
 [dependencies]
