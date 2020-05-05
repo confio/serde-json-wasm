@@ -21,6 +21,7 @@ project adheres to [Semantic Versioning](http://semver.org/).
   sequences can be deserialized copy-free. The same limitation applies to
   serde_json, where the problem shows up at
   [runtime instead of compile time](https://github.com/serde-rs/json/issues/530).
+- Strings are now unescaped during deserialization (#13)
 
 ## [0.1.3] - 2020-03-12
 
