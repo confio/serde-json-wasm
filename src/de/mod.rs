@@ -4,6 +4,7 @@ mod enum_;
 mod errors;
 mod map;
 mod seq;
+mod unescape;
 
 pub use errors::{Error, Result};
 
@@ -14,12 +15,6 @@ use serde::de::{self, Visitor};
 use self::enum_::{UnitVariantAccess, VariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
-
-fn unescape(source: &[u8]) -> Result<String> {
-    // TODO: implement unescaping
-    let string_data = source.to_vec();
-    String::from_utf8(string_data).map_err(|_| Error::InvalidUnicodeCodePoint)
-}
 
 /// Deserializer will parse serde-json-wasm flavored JSON into a
 /// serde-annotated struct
@@ -144,7 +139,7 @@ impl<'a> Deserializer<'a> {
                     } else {
                         let end = self.index;
                         self.eat_char();
-                        return unescape(&self.slice[start..end]);
+                        return unescape::unescape(&self.slice[start..end]);
                     }
                 }
                 Some(_) => self.eat_char(),
