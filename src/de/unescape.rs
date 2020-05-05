@@ -71,10 +71,14 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
                 }
                 _ => return Err(Error::InvalidEscape),
             }
-        } else if *byte == b'\\' {
-            open = true;
         } else {
-            out.push(*byte);
+            // Default case, not in escape sequence
+
+            if *byte == b'\\' {
+                open = true;
+            } else {
+                out.push(*byte);
+            }
         }
     }
 
