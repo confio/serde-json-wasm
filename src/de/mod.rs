@@ -137,7 +137,14 @@ impl fmt::Display for Error {
     }
 }
 
-/// A structure that deserializes Rust values from JSON in a buffer.
+fn unescape(source: &[u8]) -> Result<String> {
+    // TODO: implement unescaping
+    let string_data = source.to_vec();
+    String::from_utf8(string_data).map_err(|_| Error::InvalidUnicodeCodePoint)
+}
+
+/// Deserializer will parse serde-json-wasm flavored JSON into a
+/// serde-annotated struct
 pub struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
@@ -226,7 +233,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn parse_str(&mut self) -> Result<&'a str> {
+    fn parse_string(&mut self) -> Result<String> {
         let start = self.index;
         loop {
             match self.peek() {
@@ -259,8 +266,7 @@ impl<'a> Deserializer<'a> {
                     } else {
                         let end = self.index;
                         self.eat_char();
-                        return str::from_utf8(&self.slice[start..end])
-                            .map_err(|_| Error::InvalidUnicodeCodePoint);
+                        return unescape(&self.slice[start..end]);
                     }
                 }
                 Some(_) => self.eat_char(),
@@ -515,15 +521,7 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
-
-        match peek {
-            b'"' => {
-                self.eat_char();
-                visitor.visit_borrowed_str(self.parse_str()?)
-            }
-            _ => Err(Error::InvalidType),
-        }
+        self.deserialize_string(visitor)
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
@@ -535,8 +533,7 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         match peek {
             b'"' => {
                 self.eat_char();
-                let str = self.parse_str()?.to_string();
-                visitor.visit_string(str)
+                visitor.visit_string(self.parse_string()?)
             }
             _ => Err(Error::InvalidType),
         }
@@ -737,9 +734,9 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
 }
 
 /// Deserializes an instance of type `T` from bytes of JSON text
-pub fn from_slice<'a, T>(v: &'a [u8]) -> Result<T>
+pub fn from_slice<T>(v: &[u8]) -> Result<T>
 where
-    T: de::Deserialize<'a>,
+    T: de::DeserializeOwned,
 {
     let mut de = Deserializer::new(v);
     let value = de::Deserialize::deserialize(&mut de)?;
@@ -749,9 +746,9 @@ where
 }
 
 /// Deserializes an instance of type T from a string of JSON text
-pub fn from_str<'a, T>(s: &'a str) -> Result<T>
+pub fn from_str<T>(s: &str) -> Result<T>
 where
-    T: de::Deserialize<'a>,
+    T: de::DeserializeOwned,
 {
     from_slice(s.as_bytes())
 }
@@ -894,14 +891,14 @@ mod tests {
         assert_eq!(from_str(r#" "\"" "#), Ok(r#"\""#.to_string()));
 
         // non-escaped " preceded by backslashes
-        assert_eq!(from_str(r#" "foo bar\\" "#), Ok(r#"foo bar\\"#));
-        assert_eq!(from_str(r#" "foo bar\\\\" "#), Ok(r#"foo bar\\\\"#));
-        assert_eq!(from_str(r#" "foo bar\\\\\\" "#), Ok(r#"foo bar\\\\\\"#));
-        assert_eq!(from_str(r#" "foo bar\\\\\\\\" "#), Ok(r#"foo bar\\\\\\\\"#));
-        assert_eq!(from_str(r#" "\\" "#), Ok(r#"\\"#));
-        assert_eq!(from_str(r#" "" "#), Ok(""));
-        assert_eq!(from_str(r#" " " "#), Ok(" "));
-        assert_eq!(from_str(r#" "👏" "#), Ok("👏"));
+        assert_eq!(from_str(r#" "foo bar\\" "#), Ok(r#"foo bar\\"#.to_string()));
+        assert_eq!(from_str(r#" "foo bar\\\\" "#), Ok(r#"foo bar\\\\"#.to_string()));
+        assert_eq!(from_str(r#" "foo bar\\\\\\" "#), Ok(r#"foo bar\\\\\\"#.to_string()));
+        assert_eq!(from_str(r#" "foo bar\\\\\\\\" "#), Ok(r#"foo bar\\\\\\\\"#.to_string()));
+        assert_eq!(from_str(r#" "\\" "#), Ok(r#"\\"#.to_string()));
+        assert_eq!(from_str(r#" "" "#), Ok("".to_string()));
+        assert_eq!(from_str(r#" " " "#), Ok(" ".to_string()));
+        assert_eq!(from_str(r#" "👏" "#), Ok("👏".to_string()));
     }
 
     #[test]

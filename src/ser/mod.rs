@@ -790,11 +790,11 @@ mod tests {
         use serde_derive::Deserialize;
 
         #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
-        struct A<'a>(u32, Option<&'a str>, u16, bool);
+        struct A(u32, Option<String>, u16, bool);
 
-        let a1 = A(42, Some("A string"), 720, false);
+        let a1 = A(42, Some("A string".to_string()), 720, false);
         let serialized = crate::to_string(&a1).unwrap();
-        let a2: A<'_> = crate::from_str(&serialized).unwrap();
+        let a2: A = crate::from_str(&serialized).unwrap();
         assert_eq!(a1, a2);
     }
 
