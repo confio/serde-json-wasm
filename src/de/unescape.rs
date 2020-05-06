@@ -13,7 +13,7 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
     let mut out: Vec<u8> = Vec::with_capacity(source.len());
 
     let mut encoding_tmp = [0u8; 4];
-    let mut open = false;
+    let mut in_escape = false;
     let mut in_unicode = false;
     let mut unicode_tmp: Vec<u8> = Vec::with_capacity(4);
     for byte in source {
@@ -35,36 +35,36 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
                         out.extend_from_slice(encoded.as_bytes());
                         unicode_tmp.clear();
                         in_unicode = false;
-                        open = false;
+                        in_escape = false;
                     }
                 }
                 _ => return Err(Error::InvalidEscape),
             }
-        } else if open {
+        } else if in_escape {
             match byte {
                 b'"' | b'/' | b'\\' => {
                     out.push(*byte);
-                    open = false;
+                    in_escape = false;
                 }
                 b'b' => {
                     out.push(BACKSPACE);
-                    open = false;
+                    in_escape = false;
                 }
                 b'f' => {
                     out.push(FORMFEED);
-                    open = false;
+                    in_escape = false;
                 }
                 b'n' => {
                     out.push(LINEFEED);
-                    open = false;
+                    in_escape = false;
                 }
                 b'r' => {
                     out.push(CARRIAGE_RETURN);
-                    open = false;
+                    in_escape = false;
                 }
                 b't' => {
                     out.push(HORIZONTAL_TAB);
-                    open = false;
+                    in_escape = false;
                 }
                 b'u' => {
                     in_unicode = true;
@@ -75,11 +75,15 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
             // Default case, not in escape sequence
 
             if *byte == b'\\' {
-                open = true;
+                in_escape = true;
             } else {
                 out.push(*byte);
             }
         }
+    }
+
+    if in_escape {
+        return Err(Error::InvalidEscape);
     }
 
     String::from_utf8(out).map_err(|_| Error::InvalidUnicodeCodePoint)
@@ -202,6 +206,13 @@ mod tests {
         assert_eq!(unescape(br#" \u123. "#), Err(Error::InvalidEscape)); // non-hex char
         assert_eq!(unescape(br#" \u123g "#), Err(Error::InvalidEscape)); // non-hex char
         assert_eq!(unescape(br#" \u123\9 "#), Err(Error::InvalidEscape)); // non-hex char
+
+        // unfinished escape sequences
+        assert_eq!(unescape(br#" \u123"#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \u12"#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \u1"#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \u"#), Err(Error::InvalidEscape));
+        assert_eq!(unescape(br#" \"#), Err(Error::InvalidEscape));
     }
 
     #[test]
