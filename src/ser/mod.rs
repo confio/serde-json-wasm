@@ -518,6 +518,7 @@ mod tests {
         let vec = crate::to_vec(&[0, 1, 2]).unwrap();
         assert_eq!(vec.len(), 7);
         assert_eq!(&vec[..], b"[0,1,2]");
+        assert_eq!(to_string::<[u8]>(&[]).unwrap(), "[]");
         assert_eq!(to_string(&[0, 1, 2]).unwrap(), "[0,1,2]");
     }
 
@@ -528,6 +529,7 @@ mod tests {
         assert_eq!(&vec[..], b"true");
 
         assert_eq!(to_string(&true).unwrap(), "true");
+        assert_eq!(to_string(&false).unwrap(), "false");
     }
 
     #[test]
