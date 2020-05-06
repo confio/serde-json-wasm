@@ -15,25 +15,25 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
     let mut encoding_tmp = [0u8; 4];
     let mut in_escape = false;
     let mut in_unicode = false;
-    let mut unicode_tmp: Vec<u8> = Vec::with_capacity(4);
+    // Temporary storage of the four hex characters of \uACDC
+    let mut unicode_tmp = [0u8; 4];
+    // Position in `unicode_tmp` where the next insertion happens
+    let mut unicode_tmp_pos: usize = 0;
+
     for byte in source {
         if in_unicode {
             match byte {
                 b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => {
-                    unicode_tmp.push(*byte);
-                    if unicode_tmp.len() == 4 {
-                        let codepoint = hex_decode(
-                            unicode_tmp[0],
-                            unicode_tmp[1],
-                            unicode_tmp[2],
-                            unicode_tmp[3],
-                        );
-                        let encoded = match char::try_from(codepoint) {
+                    unicode_tmp[unicode_tmp_pos] = *byte;
+                    unicode_tmp_pos += 1;
+                    if unicode_tmp_pos == 4 {
+                        let codepoint = hex_decode(unicode_tmp);
+                        let encoded = match char::try_from(codepoint as u32) {
                             Ok(c) => c.encode_utf8(&mut encoding_tmp as &mut [u8]),
                             Err(_) => return Err(Error::InvalidEscape),
                         };
                         out.extend_from_slice(encoded.as_bytes());
-                        unicode_tmp.clear();
+                        unicode_tmp_pos = 0;
                         in_unicode = false;
                         in_escape = false;
                     }
@@ -91,11 +91,11 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
 
 /// Returns a 16 bit value between 0x0000 and 0xFFFF, i.e. a codepoint
 /// in the Basic Multilingual Plane.
-fn hex_decode(a: u8, b: u8, c: u8, d: u8) -> u32 {
-    (hex_decode_4bit(a) as u32) << 12
-        | (hex_decode_4bit(b) as u32) << 8
-        | (hex_decode_4bit(c) as u32) << 4
-        | (hex_decode_4bit(d) as u32)
+fn hex_decode(a: [u8; 4]) -> u16 {
+    (hex_decode_4bit(a[0]) as u16) << 12
+        | (hex_decode_4bit(a[1]) as u16) << 8
+        | (hex_decode_4bit(a[2]) as u16) << 4
+        | (hex_decode_4bit(a[3]) as u16)
 }
 
 /// Decodes a single hex character into its numeric value, i.e. maps
@@ -223,21 +223,21 @@ mod tests {
 
     #[test]
     fn hex_decode_works() {
-        assert_eq!(hex_decode(b'0', b'0', b'0', b'0'), 0x0000);
-        assert_eq!(hex_decode(b'0', b'0', b'0', b'1'), 0x0001);
-        assert_eq!(hex_decode(b'0', b'0', b'1', b'0'), 0x0010);
-        assert_eq!(hex_decode(b'0', b'1', b'0', b'0'), 0x0100);
-        assert_eq!(hex_decode(b'1', b'0', b'0', b'0'), 0x1000);
-        assert_eq!(hex_decode(b'1', b'1', b'1', b'1'), 0x1111);
-        assert_eq!(hex_decode(b'1', b'1', b'1', b'0'), 0x1110);
-        assert_eq!(hex_decode(b'1', b'1', b'0', b'1'), 0x1101);
-        assert_eq!(hex_decode(b'1', b'0', b'1', b'1'), 0x1011);
-        assert_eq!(hex_decode(b'0', b'1', b'1', b'1'), 0x0111);
+        assert_eq!(hex_decode([b'0', b'0', b'0', b'0']), 0x0000);
+        assert_eq!(hex_decode([b'0', b'0', b'0', b'1']), 0x0001);
+        assert_eq!(hex_decode([b'0', b'0', b'1', b'0']), 0x0010);
+        assert_eq!(hex_decode([b'0', b'1', b'0', b'0']), 0x0100);
+        assert_eq!(hex_decode([b'1', b'0', b'0', b'0']), 0x1000);
+        assert_eq!(hex_decode([b'1', b'1', b'1', b'1']), 0x1111);
+        assert_eq!(hex_decode([b'1', b'1', b'1', b'0']), 0x1110);
+        assert_eq!(hex_decode([b'1', b'1', b'0', b'1']), 0x1101);
+        assert_eq!(hex_decode([b'1', b'0', b'1', b'1']), 0x1011);
+        assert_eq!(hex_decode([b'0', b'1', b'1', b'1']), 0x0111);
 
-        assert_eq!(hex_decode(b'2', b'3', b'4', b'5'), 0x2345);
-        assert_eq!(hex_decode(b'6', b'7', b'8', b'9'), 0x6789);
-        assert_eq!(hex_decode(b'a', b'b', b'c', b'd'), 0xabcd);
-        assert_eq!(hex_decode(b'e', b'f', b'A', b'B'), 0xefab);
-        assert_eq!(hex_decode(b'C', b'D', b'E', b'F'), 0xcdef);
+        assert_eq!(hex_decode([b'2', b'3', b'4', b'5']), 0x2345);
+        assert_eq!(hex_decode([b'6', b'7', b'8', b'9']), 0x6789);
+        assert_eq!(hex_decode([b'a', b'b', b'c', b'd']), 0xabcd);
+        assert_eq!(hex_decode([b'e', b'f', b'A', b'B']), 0xefab);
+        assert_eq!(hex_decode([b'C', b'D', b'E', b'F']), 0xcdef);
     }
 }
