@@ -509,6 +509,7 @@ impl ser::SerializeTupleVariant for Unreachable {
 
 #[cfg(test)]
 mod tests {
+    use super::to_string;
     use serde::Deserialize;
     use serde_derive::Serialize;
 
@@ -517,7 +518,7 @@ mod tests {
         let vec = crate::to_vec(&[0, 1, 2]).unwrap();
         assert_eq!(vec.len(), 7);
         assert_eq!(&vec[..], b"[0,1,2]");
-        assert_eq!(&*crate::to_string(&[0, 1, 2]).unwrap(), "[0,1,2]");
+        assert_eq!(to_string(&[0, 1, 2]).unwrap(), "[0,1,2]");
     }
 
     #[test]
@@ -526,7 +527,7 @@ mod tests {
         assert_eq!(vec.len(), 4);
         assert_eq!(&vec[..], b"true");
 
-        assert_eq!(&*crate::to_string(&true).unwrap(), "true");
+        assert_eq!(to_string(&true).unwrap(), "true");
     }
 
     #[test]
@@ -539,22 +540,22 @@ mod tests {
             Number,
         }
 
-        assert_eq!(&*crate::to_string(&Type::Boolean).unwrap(), r#""boolean""#);
+        assert_eq!(to_string(&Type::Boolean).unwrap(), r#""boolean""#);
 
-        assert_eq!(&*crate::to_string(&Type::Number).unwrap(), r#""number""#);
+        assert_eq!(to_string(&Type::Number).unwrap(), r#""number""#);
     }
 
     #[test]
     fn str() {
-        assert_eq!(&*crate::to_string("hello").unwrap(), r#""hello""#);
-        assert_eq!(&*crate::to_string("").unwrap(), r#""""#);
+        assert_eq!(to_string("hello").unwrap(), r#""hello""#);
+        assert_eq!(to_string("").unwrap(), r#""""#);
 
         // Characters unescaped if possible
-        assert_eq!(&*crate::to_string("ä").unwrap(), r#""ä""#);
-        assert_eq!(&*crate::to_string("৬").unwrap(), r#""৬""#);
-        // assert_eq!(&*crate::to_string("\u{A0}").unwrap(), r#"" ""#); // non-breaking space
-        assert_eq!(&*crate::to_string("ℝ").unwrap(), r#""ℝ""#); // 3 byte character
-        assert_eq!(&*crate::to_string("💣").unwrap(), r#""💣""#); // 4 byte character
+        assert_eq!(to_string("ä").unwrap(), r#""ä""#);
+        assert_eq!(to_string("৬").unwrap(), r#""৬""#);
+        // assert_eq!(to_string("\u{A0}").unwrap(), r#"" ""#); // non-breaking space
+        assert_eq!(to_string("ℝ").unwrap(), r#""ℝ""#); // 3 byte character
+        assert_eq!(to_string("💣").unwrap(), r#""💣""#); // 4 byte character
 
         // " and \ must be escaped
         assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
@@ -577,23 +578,23 @@ mod tests {
         assert_eq!(&*crate::to_string("").unwrap(), r#""""#);
 
         // " and \ must be escaped
-        assert_eq!(&*crate::to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
-        assert_eq!(&*crate::to_string("foo\\bar").unwrap(), r#""foo\\bar""#);
+        assert_eq!(to_string("foo\"bar").unwrap(), r#""foo\"bar""#);
+        assert_eq!(to_string("foo\\bar").unwrap(), r#""foo\\bar""#);
 
         // \b, \t, \n, \f, \r must be escaped in their two-character escaping
-        assert_eq!(&*crate::to_string(" \u{0008} ").unwrap(), r#"" \b ""#);
-        assert_eq!(&*crate::to_string(" \u{0009} ").unwrap(), r#"" \t ""#);
-        assert_eq!(&*crate::to_string(" \u{000A} ").unwrap(), r#"" \n ""#);
-        assert_eq!(&*crate::to_string(" \u{000C} ").unwrap(), r#"" \f ""#);
-        assert_eq!(&*crate::to_string(" \u{000D} ").unwrap(), r#"" \r ""#);
+        assert_eq!(to_string(" \u{0008} ").unwrap(), r#"" \b ""#);
+        assert_eq!(to_string(" \u{0009} ").unwrap(), r#"" \t ""#);
+        assert_eq!(to_string(" \u{000A} ").unwrap(), r#"" \n ""#);
+        assert_eq!(to_string(" \u{000C} ").unwrap(), r#"" \f ""#);
+        assert_eq!(to_string(" \u{000D} ").unwrap(), r#"" \r ""#);
 
         // U+0000 through U+001F is escaped using six-character \u00xx uppercase hexadecimal escape sequences
-        assert_eq!(&*crate::to_string(" \u{0000} ").unwrap(), r#"" \u0000 ""#);
-        assert_eq!(&*crate::to_string(" \u{0001} ").unwrap(), r#"" \u0001 ""#);
-        assert_eq!(&*crate::to_string(" \u{0007} ").unwrap(), r#"" \u0007 ""#);
-        assert_eq!(&*crate::to_string(" \u{000e} ").unwrap(), r#"" \u000E ""#);
-        assert_eq!(&*crate::to_string(" \u{001D} ").unwrap(), r#"" \u001D ""#);
-        assert_eq!(&*crate::to_string(" \u{001f} ").unwrap(), r#"" \u001F ""#);
+        assert_eq!(to_string(" \u{0000} ").unwrap(), r#"" \u0000 ""#);
+        assert_eq!(to_string(" \u{0001} ").unwrap(), r#"" \u0001 ""#);
+        assert_eq!(to_string(" \u{0007} ").unwrap(), r#"" \u0007 ""#);
+        assert_eq!(to_string(" \u{000e} ").unwrap(), r#"" \u000E ""#);
+        assert_eq!(to_string(" \u{001D} ").unwrap(), r#"" \u001D ""#);
+        assert_eq!(to_string(" \u{001f} ").unwrap(), r#"" \u001F ""#);
     }
 
     #[test]
@@ -603,10 +604,7 @@ mod tests {
             led: bool,
         }
 
-        assert_eq!(
-            &*crate::to_string(&Led { led: true }).unwrap(),
-            r#"{"led":true}"#
-        );
+        assert_eq!(to_string(&Led { led: true }).unwrap(), r#"{"led":true}"#);
     }
 
     #[test]
@@ -617,22 +615,22 @@ mod tests {
         }
 
         assert_eq!(
-            &*crate::to_string(&Temperature { temperature: 127 }).unwrap(),
+            to_string(&Temperature { temperature: 127 }).unwrap(),
             r#"{"temperature":127}"#
         );
 
         assert_eq!(
-            &*crate::to_string(&Temperature { temperature: 20 }).unwrap(),
+            to_string(&Temperature { temperature: 20 }).unwrap(),
             r#"{"temperature":20}"#
         );
 
         assert_eq!(
-            &*crate::to_string(&Temperature { temperature: -17 }).unwrap(),
+            to_string(&Temperature { temperature: -17 }).unwrap(),
             r#"{"temperature":-17}"#
         );
 
         assert_eq!(
-            &*crate::to_string(&Temperature { temperature: -128 }).unwrap(),
+            to_string(&Temperature { temperature: -128 }).unwrap(),
             r#"{"temperature":-128}"#
         );
     }
@@ -690,7 +688,7 @@ mod tests {
         }
 
         assert_eq!(
-            crate::to_string(&Property {
+            to_string(&Property {
                 description: Some("An ambient temperature sensor"),
             })
             .unwrap(),
@@ -699,7 +697,7 @@ mod tests {
 
         // XXX Ideally this should produce "{}"
         assert_eq!(
-            crate::to_string(&Property { description: None }).unwrap(),
+            to_string(&Property { description: None }).unwrap(),
             r#"{"description":null}"#
         );
     }
@@ -712,7 +710,7 @@ mod tests {
         }
 
         assert_eq!(
-            &*crate::to_string(&Temperature { temperature: 20 }).unwrap(),
+            to_string(&Temperature { temperature: 20 }).unwrap(),
             r#"{"temperature":20}"#
         );
     }
@@ -722,7 +720,7 @@ mod tests {
         #[derive(Serialize)]
         struct Empty {}
 
-        assert_eq!(&*crate::to_string(&Empty {}).unwrap(), r#"{}"#);
+        assert_eq!(to_string(&Empty {}).unwrap(), r#"{}"#);
 
         #[derive(Serialize)]
         struct Tuple {
@@ -731,7 +729,7 @@ mod tests {
         }
 
         assert_eq!(
-            &*crate::to_string(&Tuple { a: true, b: false }).unwrap(),
+            to_string(&Tuple { a: true, b: false }).unwrap(),
             r#"{"a":true,"b":false}"#
         );
     }
@@ -842,7 +840,7 @@ mod tests {
         }
 
         let err_input = MyResult::Err("some error".to_string());
-        let json = crate::to_string(&err_input).expect("encode err enum");
+        let json = to_string(&err_input).expect("encode err enum");
         assert_eq!(json, r#"{"err":"some error"}"#.to_string());
         let loaded = crate::from_str(&json).expect("re-load err enum");
         assert_eq!(err_input, loaded);
@@ -852,7 +850,7 @@ mod tests {
             count: 137,
             list: Vec::new(),
         });
-        let json = crate::to_string(&empty_list).expect("encode ok enum");
+        let json = to_string(&empty_list).expect("encode ok enum");
         assert_eq!(
             json,
             r#"{"ok":{"log":"log message","count":137,"list":[]}}"#.to_string()
@@ -865,7 +863,7 @@ mod tests {
             count: 137,
             list: vec![18u32, 34, 12],
         });
-        let json = crate::to_string(&full_list).expect("encode ok enum");
+        let json = to_string(&full_list).expect("encode ok enum");
         assert_eq!(
             json,
             r#"{"ok":{"log":null,"count":137,"list":[18,34,12]}}"#.to_string()

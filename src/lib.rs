@@ -108,11 +108,11 @@ mod test {
             },
             title: "Nice message".to_string(),
             content: Some("Happy \"blogging\" 👏\n\n\tCheers, I'm out\0\0\0".to_string()),
-            list: vec![0, 1, 2, 3, 42, 154841, std::u32::MAX],
+            list: vec![0, 1, 2, 3, 42, 154841, u32::MAX],
             published: true,
             stats: Stats {
-                views: std::u64::MAX,
-                score: std::i64::MIN,
+                views: u64::MAX,
+                score: i64::MIN,
             },
         };
 
