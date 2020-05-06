@@ -28,12 +28,16 @@ jobs:
           args: --locked
         env:
           RUST_BACKTRACE: 1
+          RUSTFLAGS: "-D warnings"
 
       - name: Compile to Wasm
         uses: actions-rs/cargo@v1
         with:
           command: wasm
           args: --locked
+        env:
+          RUST_BACKTRACE: 1
+          RUSTFLAGS: "-D warnings"
 
   sanity:
     name: Sanity
