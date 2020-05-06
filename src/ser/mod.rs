@@ -29,7 +29,6 @@ pub enum Error {
 
     /// Custom error message from serde
     Custom(String),
-
 }
 
 impl From<()> for Error {
@@ -256,42 +255,42 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok> {
-        // "-128"
+        // -128
         serialize_signed!(self, 4, v, i8, u8)
     }
 
     fn serialize_i16(self, v: i16) -> Result<Self::Ok> {
-        // "-32768"
+        // -32768
         serialize_signed!(self, 6, v, i16, u16)
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok> {
-        // "-2147483648"
+        // -2147483648
         serialize_signed!(self, 11, v, i32, u32)
     }
 
     fn serialize_i64(self, v: i64) -> Result<Self::Ok> {
-        // "-9223372036854775808"
+        // -9223372036854775808
         serialize_signed!(self, 20, v, i64, u64)
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok> {
-        // "255"
+        // 255
         serialize_unsigned!(self, 3, v)
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok> {
-        // "65535"
+        // 65535
         serialize_unsigned!(self, 5, v)
     }
 
     fn serialize_u32(self, v: u32) -> Result<Self::Ok> {
-        // "4294967295"
+        // 4294967295
         serialize_unsigned!(self, 10, v)
     }
 
     fn serialize_u64(self, v: u64) -> Result<Self::Ok> {
-        // "18446744073709551615"
+        // 18446744073709551615
         serialize_unsigned!(self, 20, v)
     }
 
@@ -520,6 +519,75 @@ mod tests {
     use super::to_string;
     use serde::Deserialize;
     use serde_derive::Serialize;
+
+    #[test]
+    fn number() {
+        assert_eq!(to_string::<u8>(&0).unwrap(), "0");
+        assert_eq!(to_string::<u8>(&1).unwrap(), "1");
+        assert_eq!(to_string::<u8>(&u8::MAX).unwrap(), "255");
+
+        assert_eq!(to_string::<i8>(&0).unwrap(), "0");
+        assert_eq!(to_string::<i8>(&1).unwrap(), "1");
+        assert_eq!(to_string::<i8>(&127).unwrap(), "127");
+        assert_eq!(to_string::<i8>(&-1).unwrap(), "-1");
+        assert_eq!(to_string::<i8>(&i8::MIN).unwrap(), "-128");
+
+        assert_eq!(to_string::<u16>(&0).unwrap(), "0");
+        assert_eq!(to_string::<u16>(&1).unwrap(), "1");
+        assert_eq!(to_string::<u16>(&550).unwrap(), "550");
+        assert_eq!(to_string::<u16>(&u16::MAX).unwrap(), "65535");
+
+        assert_eq!(to_string::<i16>(&0).unwrap(), "0");
+        assert_eq!(to_string::<i16>(&1).unwrap(), "1");
+        assert_eq!(to_string::<i16>(&550).unwrap(), "550");
+        assert_eq!(to_string::<i16>(&i16::MAX).unwrap(), "32767");
+        assert_eq!(to_string::<i16>(&-1).unwrap(), "-1");
+        assert_eq!(to_string::<i16>(&i16::MIN).unwrap(), "-32768");
+
+        assert_eq!(to_string::<u32>(&0).unwrap(), "0");
+        assert_eq!(to_string::<u32>(&1).unwrap(), "1");
+        assert_eq!(to_string::<u32>(&456789).unwrap(), "456789");
+        assert_eq!(to_string::<u32>(&u32::MAX).unwrap(), "4294967295");
+
+        assert_eq!(to_string::<i32>(&0).unwrap(), "0");
+        assert_eq!(to_string::<i32>(&1).unwrap(), "1");
+        assert_eq!(to_string::<i32>(&456789).unwrap(), "456789");
+        assert_eq!(to_string::<i32>(&i32::MAX).unwrap(), "2147483647");
+        assert_eq!(to_string::<i32>(&-1).unwrap(), "-1");
+        assert_eq!(to_string::<i32>(&i32::MIN).unwrap(), "-2147483648");
+
+        assert_eq!(to_string::<u64>(&0).unwrap(), "0");
+        assert_eq!(to_string::<u64>(&1).unwrap(), "1");
+        assert_eq!(to_string::<u64>(&456789).unwrap(), "456789");
+        assert_eq!(to_string::<u64>(&4294967295).unwrap(), "4294967295");
+        assert_eq!(to_string::<u64>(&4294967296).unwrap(), "4294967296");
+        assert_eq!(
+            to_string::<u64>(&9007199254740991).unwrap(),
+            "9007199254740991"
+        ); // Number.MAX_SAFE_INTEGER
+        assert_eq!(
+            to_string::<u64>(&9007199254740992).unwrap(),
+            "9007199254740992"
+        ); // Number.MAX_SAFE_INTEGER+1
+        assert_eq!(to_string::<u64>(&u64::MAX).unwrap(), "18446744073709551615");
+
+        assert_eq!(to_string::<i64>(&0).unwrap(), "0");
+        assert_eq!(to_string::<i64>(&1).unwrap(), "1");
+        assert_eq!(to_string::<i64>(&456789).unwrap(), "456789");
+        assert_eq!(to_string::<i64>(&4294967295).unwrap(), "4294967295");
+        assert_eq!(to_string::<i64>(&4294967296).unwrap(), "4294967296");
+        assert_eq!(
+            to_string::<i64>(&9007199254740991).unwrap(),
+            "9007199254740991"
+        ); // Number.MAX_SAFE_INTEGER
+        assert_eq!(
+            to_string::<i64>(&9007199254740992).unwrap(),
+            "9007199254740992"
+        ); // Number.MAX_SAFE_INTEGER+1
+        assert_eq!(to_string::<i64>(&i64::MAX).unwrap(), "9223372036854775807");
+        assert_eq!(to_string::<i64>(&-1).unwrap(), "-1");
+        assert_eq!(to_string::<i64>(&i64::MIN).unwrap(), "-9223372036854775808");
+    }
 
     #[test]
     fn array() {
