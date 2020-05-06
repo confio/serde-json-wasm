@@ -26,8 +26,14 @@ pub enum Error {
     /// Expected this character to be a `':'`.
     ExpectedColon,
 
+    /// Expected a high surrogate (D800–DBFF) but found something else
+    ExpectedHighSurrogate,
+
     /// Expected this character to be either a `','` or a `']'`.
     ExpectedListCommaOrEnd,
+
+    /// Expected a low surrogate (DC00–DFFF) but found something else
+    ExpectedLowSurrogate,
 
     /// Expected this character to be either a `','` or a `'}'`.
     ExpectedObjectCommaOrEnd,
@@ -52,6 +58,9 @@ pub enum Error {
 
     /// Object key is not a string.
     KeyMustBeAString,
+
+    /// Found a lone surrogate, which can exist in JSON but cannot be encoded to UTF-8
+    LoneSurrogateFound,
 
     /// JSON has non-whitespace trailing characters after the value.
     TrailingCharacters,
@@ -93,11 +102,13 @@ impl fmt::Display for Error {
                 Error::EofWhileParsingString => "EOF while parsing a string.",
                 Error::EofWhileParsingValue => "EOF while parsing a JSON value.",
                 Error::ExpectedColon => "Expected this character to be a `':'`.",
+                Error::ExpectedHighSurrogate => "Expected a high surrogate (D800–DBFF).",
                 Error::ExpectedListCommaOrEnd => {
                     "Expected this character to be either a `','` or\
                      a \
                      `']'`."
                 }
+                Error::ExpectedLowSurrogate => "Expected a low surrogate (DC00–DFFF).",
                 Error::ExpectedObjectCommaOrEnd => {
                     "Expected this character to be either a `','` \
                      or a \
@@ -113,6 +124,7 @@ impl fmt::Display for Error {
                 Error::InvalidType => "Invalid type",
                 Error::InvalidUnicodeCodePoint => "Invalid unicode code point.",
                 Error::KeyMustBeAString => "Object key is not a string.",
+                Error::LoneSurrogateFound => "Found a lone surrogate, which can exist in JSON but cannot be encoded to UTF-8.",
                 Error::TrailingCharacters => {
                     "JSON has non-whitespace trailing characters after \
                      the \

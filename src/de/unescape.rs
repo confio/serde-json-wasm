@@ -9,6 +9,11 @@ static LINEFEED: u8 = 0x0A; // LF
 static CARRIAGE_RETURN: u8 = 0x0D; // CR
 static HORIZONTAL_TAB: u8 = 0x09; // HT
 
+static SURROGARES_FIRST: u16 = 0xD800;
+static SURROGARES_HIGH_LAST: u16 = 0xDBFF;
+static SURROGARES_LOW_FIRST: u16 = 0xDC00;
+static SURROGARES_LAST: u16 = 0xDFFF;
+
 pub(crate) fn unescape(source: &[u8]) -> Result<String> {
     let mut out: Vec<u8> = Vec::with_capacity(source.len());
 
@@ -19,6 +24,7 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
     let mut unicode_tmp = [0u8; 4];
     // Position in `unicode_tmp` where the next insertion happens
     let mut unicode_tmp_pos: usize = 0;
+    let mut high_surrogate: Option<u16> = None;
 
     for byte in source {
         if in_unicode {
@@ -28,11 +34,38 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
                     unicode_tmp_pos += 1;
                     if unicode_tmp_pos == 4 {
                         let codepoint = hex_decode(unicode_tmp);
-                        let encoded = match char::try_from(codepoint as u32) {
-                            Ok(c) => c.encode_utf8(&mut encoding_tmp as &mut [u8]),
-                            Err(_) => return Err(Error::InvalidEscape),
-                        };
-                        out.extend_from_slice(encoded.as_bytes());
+
+                        if codepoint >= SURROGARES_FIRST && codepoint <= SURROGARES_LAST {
+                            if let Some(high) = high_surrogate {
+                                if codepoint < SURROGARES_LOW_FIRST {
+                                    return Err(Error::ExpectedLowSurrogate);
+                                }
+                                let low = codepoint;
+
+                                // https://en.wikipedia.org/wiki/Universal_Character_Set_characters#Surrogates
+                                let combined = 0x1_0000
+                                    + (((high - 0xD800) as u32) << 10 | (low - 0xDC00) as u32);
+                                let encoded = match char::try_from(combined) {
+                                    Ok(c) => c.encode_utf8(&mut encoding_tmp as &mut [u8]),
+                                    Err(_) => return Err(Error::InvalidUnicodeCodePoint),
+                                };
+                                out.extend_from_slice(encoded.as_bytes());
+
+                                high_surrogate = None;
+                            } else {
+                                if codepoint > SURROGARES_HIGH_LAST {
+                                    return Err(Error::ExpectedHighSurrogate);
+                                }
+                                high_surrogate = Some(codepoint);
+                            }
+                        } else {
+                            let encoded = match char::try_from(codepoint as u32) {
+                                Ok(c) => c.encode_utf8(&mut encoding_tmp as &mut [u8]),
+                                Err(_) => return Err(Error::InvalidEscape),
+                            };
+                            out.extend_from_slice(encoded.as_bytes());
+                        }
+
                         unicode_tmp_pos = 0;
                         in_unicode = false;
                         in_escape = false;
@@ -77,6 +110,10 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
             if *byte == b'\\' {
                 in_escape = true;
             } else {
+                if high_surrogate.is_some() {
+                    return Err(Error::LoneSurrogateFound);
+                }
+
                 out.push(*byte);
             }
         }
@@ -84,6 +121,10 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
 
     if in_escape {
         return Err(Error::InvalidEscape);
+    }
+
+    if high_surrogate.is_some() {
+        return Err(Error::LoneSurrogateFound);
     }
 
     String::from_utf8(out).map_err(|_| Error::InvalidUnicodeCodePoint)
@@ -116,6 +157,11 @@ mod tests {
     /// A testing wrapper around unescape
     fn ue(source: &[u8]) -> String {
         unescape(source).unwrap()
+    }
+
+    /// A testing wrapper around unescape, expecting error
+    fn uee(source: &[u8]) -> Error {
+        unescape(source).unwrap_err()
     }
 
     #[test]
@@ -216,9 +262,31 @@ mod tests {
     }
 
     #[test]
-    fn unescape_fails_for_surrogates() {
-        // TODO: implement
-        assert_eq!(unescape(br#" \uDEAD "#), Err(Error::InvalidEscape)); // surrogate
+    fn unescape_works_for_surrogate_pairs() {
+        assert_eq!(ue(br#" \uD83D\uDC4F "#), " \u{1F44F} ".to_string());
+        assert_eq!(ue(br#" \uD83D\uDC4F\uD83D\uDC4F "#), " 👏👏 ".to_string());
+
+        assert_eq!(ue(br#" \uD83E\uDD7A "#), " \u{1F97A} ".to_string());
+        assert_eq!(ue(br#" \uD83E\uDD7A\uD83D\uDC4F "#), " 🥺👏 ".to_string());
+    }
+
+    #[test]
+    fn unescape_fails_for_broken_surrogates() {
+        assert_eq!(uee(br#" \uDEAD "#), Error::ExpectedHighSurrogate);
+        assert_eq!(uee(br#" \uDC4F\uD83D "#), Error::ExpectedHighSurrogate); // Clapping hands reversed
+
+        assert_eq!(uee(br#" \uD800\uD800 "#), Error::ExpectedLowSurrogate);
+    }
+
+    #[test]
+    fn unescape_fails_for_lone_surrogates() {
+        assert_eq!(uee(br#" \uD83Dabc "#), Error::LoneSurrogateFound);
+        assert_eq!(uee(br#" \uD83D"#), Error::LoneSurrogateFound);
+
+        // high surrogate followed by non-surrogate
+        assert_eq!(uee(br#" \uD800\u0001 "#), Error::LoneSurrogateFound);
+        assert_eq!(uee(br#" \uD800\uD799 "#), Error::LoneSurrogateFound);
+        assert_eq!(uee(br#" \uD800\uE000 "#), Error::LoneSurrogateFound);
     }
 
     #[test]
