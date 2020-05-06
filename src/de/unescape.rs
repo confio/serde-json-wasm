@@ -27,6 +27,10 @@ pub(crate) fn unescape(source: &[u8]) -> Result<String> {
     let mut high_surrogate: Option<u16> = None;
 
     for byte in source {
+        if *byte <= 0x1F {
+            return Err(Error::ControlCharacterInString);
+        }
+
         if in_unicode {
             match byte {
                 b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => {
@@ -172,6 +176,7 @@ mod tests {
         assert_eq!(ue(b"ab"), "ab".to_string());
         assert_eq!(ue(b"abc"), "abc".to_string());
         assert_eq!(ue(b"a/c"), "a/c".to_string());
+        assert_eq!(ue(b"\x20"), " ".to_string()); // first non-control character
         assert_eq!(ue(b"\xF0\x9F\x91\x8F"), "👏".to_string()); // U+1F44F
 
         // even number of backslashes
@@ -231,6 +236,42 @@ mod tests {
         assert_eq!(ue(br#" \uABCDefg "#), " \u{abcd}efg ".to_string());
         assert_eq!(ue(br#" \uabcdefg "#), " \u{abcd}efg ".to_string());
         assert_eq!(ue(br#" \uAbCdefg "#), " \u{abcd}efg ".to_string());
+    }
+
+    #[test]
+    fn unescape_fails_for_control_characters() {
+        assert_eq!(unescape(b" \x00 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x01 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x02 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x03 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x04 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x05 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x06 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x07 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x08 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x09 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0a "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0b "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0c "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0d "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0e "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x0f "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x10 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x11 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x12 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x13 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x14 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x15 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x16 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x17 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x18 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x19 "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1a "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1b "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1c "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1d "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1e "), Err(Error::ControlCharacterInString));
+        assert_eq!(unescape(b" \x1f "), Err(Error::ControlCharacterInString));
     }
 
     #[test]

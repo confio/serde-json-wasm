@@ -8,6 +8,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 #[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[non_exhaustive]
 pub enum Error {
+    /// Control character (U+0000 to U+001F) found in string. Those must always be escaped.
+    ControlCharacterInString,
+
     /// EOF while parsing a list.
     EofWhileParsingList,
 
@@ -97,6 +100,7 @@ impl fmt::Display for Error {
             f,
             "{}",
             match self {
+                Error::ControlCharacterInString => "Control character found in string.",
                 Error::EofWhileParsingList => "EOF while parsing a list.",
                 Error::EofWhileParsingObject => "EOF while parsing an object.",
                 Error::EofWhileParsingString => "EOF while parsing a string.",
