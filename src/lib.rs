@@ -63,3 +63,65 @@ pub mod ser;
 #[doc(inline)]
 pub use self::de::{from_slice, from_str};
 pub use self::ser::{to_string, to_vec};
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use serde_derive::{Deserialize, Serialize};
+
+    #[derive(Debug, Deserialize, Serialize, PartialEq)]
+    enum Model {
+        Comment,
+        Post { category: String, author: String },
+    }
+
+    #[derive(Debug, Deserialize, Serialize, PartialEq)]
+    struct Stats {
+        views: u64,
+        score: i64,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, PartialEq)]
+    struct Item {
+        model: Model,
+        title: String,
+        content: Option<String>,
+        list: Vec<u32>,
+        published: bool,
+        stats: Stats,
+    }
+
+    #[test]
+    fn can_serde() {
+        let min = Item {
+            model: Model::Comment,
+            title: "".to_string(),
+            content: None,
+            list: vec![],
+            published: false,
+            stats: Stats { views: 0, score: 0 },
+        };
+        let max = Item {
+            model: Model::Post {
+                category: "fun".to_string(),
+                author: "sunnyboy85".to_string(),
+            },
+            title: "Nice message".to_string(),
+            content: Some("Happy \"blogging\" 👏\n\n\tCheers, I'm out\0\0\0".to_string()),
+            list: vec![0, 1, 2, 3, 42, 154841, std::u32::MAX],
+            published: true,
+            stats: Stats {
+                views: std::u64::MAX,
+                score: std::i64::MIN,
+            },
+        };
+
+        // binary
+        assert_eq!(from_slice::<Item>(&to_vec(&min).unwrap()).unwrap(), min);
+        assert_eq!(from_slice::<Item>(&to_vec(&max).unwrap()).unwrap(), max);
+
+        // string
+        assert_eq!(from_str::<Item>(&to_string(&min).unwrap()).unwrap(), min);
+        assert_eq!(from_str::<Item>(&to_string(&max).unwrap()).unwrap(), max);
+    }
+}
