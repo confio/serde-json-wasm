@@ -676,6 +676,20 @@ mod tests {
     }
 
     #[test]
+    fn newtype() {
+        #[derive(Serialize)]
+        struct Address(String);
+        #[derive(Serialize)]
+        struct CommentId(u32);
+
+        assert_eq!(
+            to_string(&Address("home".to_string())).unwrap(),
+            r#""home""#
+        );
+        assert_eq!(to_string(&CommentId(42)).unwrap(), r#"42"#);
+    }
+
+    #[test]
     fn struct_bool() {
         #[derive(Serialize)]
         struct Led {

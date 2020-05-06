@@ -1079,18 +1079,34 @@ mod tests {
         );
     }
 
-    #[derive(Deserialize, Clone, Debug, PartialEq)]
-    pub struct Address(pub String);
-
-    #[derive(Deserialize, Clone, Debug, PartialEq)]
-    pub struct NewtypeDemo {
-        pub address: Address,
-    }
-
     #[test]
     fn newtypes() {
-        let c: NewtypeDemo = from_str(r#"{"address": "johnny"}"#).unwrap();
-        assert_eq!(Address("johnny".to_string()), c.address);
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct Address(String);
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct CommentId(u32);
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct NewtypeDemo {
+            address: Address,
+            comment: CommentId,
+        }
+
+        let element: Address = from_str(r#""johnny""#).unwrap();
+        assert_eq!(element, Address("johnny".to_string()));
+
+        let element: CommentId = from_str(r#"5464813"#).unwrap();
+        assert_eq!(element, CommentId(5464813));
+
+        let element: NewtypeDemo = from_str(r#"{"address": "johnny", "comment": 9897}"#).unwrap();
+        assert_eq!(
+            element,
+            NewtypeDemo {
+                address: Address("johnny".to_string()),
+                comment: CommentId(9897),
+            }
+        );
     }
 
     #[test]
