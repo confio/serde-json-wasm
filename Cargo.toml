@@ -5,7 +5,7 @@ authors = [
     "Simon Warta <webmaster128@noreply.github.com>",
 ]
 categories = ["wasm"]
-description = "serde-json for wasm programs"
+description = "serde_json for Wasm programs (small, deterministic, no floats)"
 documentation = "https://docs.rs/serde-json-wasm"
 edition = "2018"
 keywords = ["serde", "json", "wasm"]
