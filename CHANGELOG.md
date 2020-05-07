@@ -7,6 +7,15 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2020-05-07
+
+### Changed
+
+- Remove unused Travis CI config
+- Polish Cargo.toml
+
+## [0.2.0] - 2020-05-07
+
 ### Fixed
 
 - The end of strings is now detected correctly in deserialization (#11)
@@ -41,7 +50,9 @@ Initial release after forking from
 [serde-json-core](https://github.com/japaric/serde-json-core) at
 [bf5533a0](https://github.com/japaric/serde-json-core/commit/bf5533a042a0).
 
-[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.1.3...HEAD
+[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.1.0...v0.1.1
