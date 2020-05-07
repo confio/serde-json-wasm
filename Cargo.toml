@@ -14,7 +14,11 @@ name = "serde-json-wasm"
 readme = "README.md"
 repository = "https://github.com/CosmWasm/serde-json-wasm"
 version = "0.2.0"
-exclude = [".gitignore", ".cargo"]
+exclude = [
+    ".cargo/",
+    ".github/",
+    ".gitignore",
+]
 
 [dependencies]
 ryu = "1.0.5"
