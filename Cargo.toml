@@ -1,5 +1,9 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>", "Ethan Frey <ethanfrey@noreply.github.com", "Simon Warta <webmaster128@noreply.github.com"]
+authors = [
+    "Jorge Aparicio <jorge@japaric.io>",
+    "Ethan Frey <ethanfrey@noreply.github.com>",
+    "Simon Warta <webmaster128@noreply.github.com>",
+]
 categories = ["wasm"]
 description = "serde-json for wasm programs"
 documentation = "https://docs.rs/serde-json-wasm"
