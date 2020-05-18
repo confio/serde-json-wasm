@@ -611,16 +611,25 @@ mod tests {
     #[test]
     fn enum_() {
         #[derive(Serialize)]
-        enum Type {
-            #[serde(rename = "boolean")]
-            Boolean,
-            #[serde(rename = "number")]
-            Number,
+        enum Animal {
+            Ant,
+            #[serde(rename = "kitty")]
+            Cat,
+            // serialize_tuple_variant not implemented right now
+            // Dog(),
+            Horse {},
+            Zebra {
+                height: u32,
+            },
         }
-
-        assert_eq!(to_string(&Type::Boolean).unwrap(), r#""boolean""#);
-
-        assert_eq!(to_string(&Type::Number).unwrap(), r#""number""#);
+        assert_eq!(to_string(&Animal::Ant).unwrap(), r#""Ant""#);
+        assert_eq!(to_string(&Animal::Cat).unwrap(), r#""kitty""#);
+        // assert_eq!(to_string(&Animal::Dog()).unwrap(), r#"{"Dog":[]}"#);
+        assert_eq!(to_string(&Animal::Horse {}).unwrap(), r#"{"Horse":{}}"#);
+        assert_eq!(
+            to_string(&Animal::Zebra { height: 273 }).unwrap(),
+            r#"{"Zebra":{"height":273}}"#
+        );
     }
 
     #[test]
