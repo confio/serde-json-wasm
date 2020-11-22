@@ -467,7 +467,17 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        self.deserialize_unit(visitor)
+        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
+
+        if peek == b'{' {
+            self.eat_char();
+            let ret = visitor.visit_unit()?;
+            // Check syntax / consume closing curly brace
+            self.end_map()?;
+            Ok(ret)
+        } else {
+            Err(Error::InvalidType)
+        }
     }
 
     /// Unsupported. We can’t parse newtypes because we don’t know the underlying type.
@@ -1027,6 +1037,22 @@ mod tests {
             from_str::<Xy>(r#"[10, 20, 30]"#),
             Err(crate::de::Error::TrailingCharacters)
         );
+    }
+
+    #[test]
+    fn struct_empty() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        struct Empty {}
+
+        assert_eq!(from_str(r#"{}"#), Ok(Empty {}));
+    }
+
+    #[test]
+    fn struct_nothing() {
+        #[derive(Debug, Deserialize, PartialEq, Default)]
+        struct Nothing;
+
+        assert_eq!(from_str(r#"{}"#), Ok(Nothing));
     }
 
     #[test]
