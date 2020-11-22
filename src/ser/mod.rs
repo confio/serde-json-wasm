@@ -613,6 +613,18 @@ mod tests {
     }
 
     #[test]
+    fn tuple_variant() {
+        #[derive(Serialize)]
+        enum TupleVariant {
+            Add(i32, i32),
+        }
+        assert_eq!(
+            to_string(&TupleVariant::Add(3, 4)).unwrap(),
+            r#"{"Add":[3,4]}"#
+        );
+    }
+
+    #[test]
     fn enum_() {
         #[derive(Serialize)]
         enum Animal {
