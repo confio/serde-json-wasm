@@ -3,6 +3,7 @@ authors = [
     "Jorge Aparicio <jorge@japaric.io>",
     "Ethan Frey <ethanfrey@noreply.github.com>",
     "Simon Warta <webmaster128@noreply.github.com>",
+    "Mauro Lacy <maurolacy@noreply.github.com>",
 ]
 categories = ["wasm"]
 description = "serde_json for Wasm programs (small, deterministic, no floats)"
@@ -13,7 +14,7 @@ license = "MIT OR Apache-2.0"
 name = "serde-json-wasm"
 readme = "README.md"
 repository = "https://github.com/CosmWasm/serde-json-wasm"
-version = "0.2.1"
+version = "0.2.2"
 exclude = [
     ".cargo/",
     ".github/",
