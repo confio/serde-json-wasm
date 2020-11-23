@@ -7,6 +7,8 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Add support for unit structs serialization / deserialization
+
 ## [0.2.1] - 2020-05-07
 
 ### Changed
