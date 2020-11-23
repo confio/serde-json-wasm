@@ -714,6 +714,17 @@ mod tests {
     }
 
     #[test]
+    fn tuple_variant() {
+        #[derive(Debug, Deserialize, PartialEq)]
+        enum TupleVariant {
+            Add(i32, i32),
+            Sub(i32, i32),
+        }
+        assert_eq!(from_str(r#"{"Add":[3,4]}"#), Ok(TupleVariant::Add(3, 4)));
+        assert_eq!(from_str(r#"{"Sub":[5,6]}"#), Ok(TupleVariant::Sub(5, 6)));
+    }
+
+    #[test]
     fn bool() {
         assert_eq!(from_str("true"), Ok(true));
         assert_eq!(from_str(" true"), Ok(true));
