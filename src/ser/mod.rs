@@ -344,10 +344,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok> {
-        // This matches the behaviour of serde_json, which seems to be a test criteria?
-
-        // Zero-sized (i.e. empty) struct
-        //self.extend_from_slice(b"{}")
+        // Zero-sized (i.e. empty) struct serialized to (serde_json compatible) "null"
         self.serialize_unit()
     }
 
