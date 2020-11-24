@@ -1040,10 +1040,11 @@ mod tests {
 
     #[test]
     fn struct_empty() {
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Clone)]
         struct Empty {}
 
         assert_eq!(from_str(r#"{}"#), Ok(Empty {}));
+        assert_eq!(serde_json::from_str::<Empty>(r#"{}"#).unwrap(), Empty {});
     }
 
     #[test]
@@ -1052,6 +1053,7 @@ mod tests {
         struct Nothing;
 
         assert_eq!(from_str(r#"null"#), Ok(Nothing));
+        assert_eq!(serde_json::from_str::<Nothing>(r#"null"#).unwrap(), Nothing);
     }
 
     #[test]
