@@ -469,11 +469,10 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
 
-        if peek == b'{' {
+        if peek == b'n' {
             self.eat_char();
+            self.parse_ident(b"ull")?;
             let ret = visitor.visit_unit()?;
-            // Check syntax / consume closing curly brace
-            self.end_map()?;
             Ok(ret)
         } else {
             self.deserialize_unit(visitor)
@@ -1052,7 +1051,7 @@ mod tests {
         #[derive(Debug, Deserialize, PartialEq, Default)]
         struct Nothing;
 
-        assert_eq!(from_str(r#"{}"#), Ok(Nothing));
+        assert_eq!(from_str(r#"null"#), Ok(Nothing));
     }
 
     #[test]
