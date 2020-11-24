@@ -344,8 +344,11 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok> {
+        // This matches the behaviour of serde_json, which seems to be a test criteria?
+
         // Zero-sized (i.e. empty) struct
-        self.extend_from_slice(b"{}")
+        //self.extend_from_slice(b"{}")
+        self.serialize_unit()
     }
 
     fn serialize_unit_variant(
@@ -822,12 +825,20 @@ mod tests {
         #[derive(Serialize)]
         struct Nothing;
 
-        assert_eq!(to_string(&Nothing).unwrap(), r#"{}"#);
+        assert_eq!(to_string(&Nothing).unwrap(), r#"null"#);
+        assert_eq!(
+            to_string(&Nothing).unwrap(),
+            serde_json::to_string(&Nothing).unwrap()
+        );
 
         #[derive(Serialize)]
         struct Empty {}
 
         assert_eq!(to_string(&Empty {}).unwrap(), r#"{}"#);
+        assert_eq!(
+            to_string(&Empty {}).unwrap(),
+            serde_json::to_string(&Empty {}).unwrap()
+        );
 
         #[derive(Serialize)]
         struct Tuple {

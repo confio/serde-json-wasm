@@ -476,7 +476,7 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             self.end_map()?;
             Ok(ret)
         } else {
-            Err(Error::InvalidType)
+            self.deserialize_unit(visitor)
         }
     }
 
