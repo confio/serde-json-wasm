@@ -344,7 +344,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok> {
-        // Zero-sized (i.e. empty) struct serialized to (serde_json compatible) "null"
+        // Unit struct is serialized to (serde_json compatible) "null"
         self.serialize_unit()
     }
 
