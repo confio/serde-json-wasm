@@ -722,8 +722,20 @@ mod tests {
             Add(i64, i64),
         }
         assert_eq!(from_str(r#"{"Exit":[]}"#), Ok(Ops::Exit()));
-        assert_eq!(from_str(r#"{"Square":2}"#), Ok(Ops::Square(2)));
-        assert_eq!(from_str(r#"{"Add":[3,4]}"#), Ok(Ops::Add(3, 4)));
+        assert_eq!(
+            serde_json::from_str::<Ops>(r#"{"Exit":[]}"#).unwrap(),
+            Ops::Exit()
+        );
+        assert_eq!(from_str(r#"{"Square":1}"#), Ok(Ops::Square(1)));
+        assert_eq!(
+            serde_json::from_str::<Ops>(r#"{"Square":1}"#).unwrap(),
+            Ops::Square(1)
+        );
+        assert_eq!(from_str(r#"{"Add":[2,3]}"#), Ok(Ops::Add(2, 3)));
+        assert_eq!(
+            serde_json::from_str::<Ops>(r#"{"Add":[2,3]}"#).unwrap(),
+            Ops::Add(2, 3)
+        );
     }
 
     #[test]
@@ -1053,7 +1065,7 @@ mod tests {
 
     #[test]
     fn struct_empty() {
-        #[derive(Debug, Deserialize, PartialEq, Clone)]
+        #[derive(Debug, Deserialize, PartialEq)]
         struct Empty {}
 
         assert_eq!(from_str(r#"{}"#), Ok(Empty {}));
@@ -1062,7 +1074,7 @@ mod tests {
 
     #[test]
     fn struct_nothing() {
-        #[derive(Debug, Deserialize, PartialEq, Default)]
+        #[derive(Debug, Deserialize, PartialEq)]
         struct Nothing;
 
         assert_eq!(from_str(r#"null"#), Ok(Nothing));

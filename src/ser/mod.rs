@@ -621,8 +621,20 @@ mod tests {
             Add(i64, i64),
         }
         assert_eq!(to_string(&Ops::Exit()).unwrap(), r#"{"Exit":[]}"#);
+        assert_eq!(
+            to_string(&Ops::Exit()).unwrap(),
+            serde_json::to_string(&Ops::Exit()).unwrap()
+        );
         assert_eq!(to_string(&Ops::Square(2)).unwrap(), r#"{"Square":2}"#);
+        assert_eq!(
+            to_string(&Ops::Square(2)).unwrap(),
+            serde_json::to_string(&Ops::Square(2)).unwrap()
+        );
         assert_eq!(to_string(&Ops::Add(3, 4)).unwrap(), r#"{"Add":[3,4]}"#);
+        assert_eq!(
+            to_string(&Ops::Add(3, 4)).unwrap(),
+            serde_json::to_string(&Ops::Add(3, 4)).unwrap()
+        );
     }
 
     #[test]
