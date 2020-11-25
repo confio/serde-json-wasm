@@ -716,12 +716,14 @@ mod tests {
     #[test]
     fn tuple_variant() {
         #[derive(Debug, Deserialize, PartialEq)]
-        enum TupleVariant {
-            Add(i32, i32),
-            Sub(i32, i32),
+        enum Ops {
+            Exit(),
+            Square(i32),
+            Add(i64, i64),
         }
-        assert_eq!(from_str(r#"{"Add":[3,4]}"#), Ok(TupleVariant::Add(3, 4)));
-        assert_eq!(from_str(r#"{"Sub":[5,6]}"#), Ok(TupleVariant::Sub(5, 6)));
+        assert_eq!(from_str(r#"{"Exit":[]}"#), Ok(Ops::Exit()));
+        assert_eq!(from_str(r#"{"Square":2}"#), Ok(Ops::Square(2)));
+        assert_eq!(from_str(r#"{"Add":[3,4]}"#), Ok(Ops::Add(3, 4)));
     }
 
     #[test]
