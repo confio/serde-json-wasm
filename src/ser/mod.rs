@@ -613,7 +613,7 @@ mod tests {
     }
 
     #[test]
-    fn tuple_variant() {
+    fn enum_variants_tuple_like_structs() {
         #[derive(Serialize)]
         enum Ops {
             Exit(),
@@ -638,7 +638,7 @@ mod tests {
     }
 
     #[test]
-    fn enum_() {
+    fn enum_mixed() {
         #[derive(Serialize)]
         enum Animal {
             Ant,
