@@ -9,6 +9,7 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add support for unit structs serialization / deserialization.
 - Add support for tuple variants serialization / deserialization.
+- Add support for unit serialization / deserialization.
 
 ## [0.2.1] - 2020-05-07
 
