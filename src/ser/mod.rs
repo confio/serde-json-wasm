@@ -638,6 +638,37 @@ mod tests {
     }
 
     #[test]
+    fn enum_variants_c_like_structs() {
+        #[derive(Serialize)]
+        enum Op {
+            Exit {},
+            Square { input: i32 },
+            Add { a: i64, b: i64 },
+        }
+        assert_eq!(to_string(&Op::Exit {}).unwrap(), r#"{"Exit":{}}"#);
+        assert_eq!(
+            to_string(&Op::Exit {}).unwrap(),
+            serde_json::to_string(&Op::Exit {}).unwrap()
+        );
+        assert_eq!(
+            to_string(&Op::Square { input: 2 }).unwrap(),
+            r#"{"Square":{"input":2}}"#
+        );
+        assert_eq!(
+            to_string(&Op::Square { input: 2 }).unwrap(),
+            serde_json::to_string(&Op::Square { input: 2 }).unwrap()
+        );
+        assert_eq!(
+            to_string(&Op::Add { a: 3, b: 4 }).unwrap(),
+            r#"{"Add":{"a":3,"b":4}}"#
+        );
+        assert_eq!(
+            to_string(&Op::Add { a: 3, b: 4 }).unwrap(),
+            serde_json::to_string(&Op::Add { a: 3, b: 4 }).unwrap()
+        );
+    }
+
+    #[test]
     fn enum_mixed() {
         #[derive(Serialize)]
         enum Animal {
