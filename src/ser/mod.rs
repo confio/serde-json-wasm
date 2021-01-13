@@ -613,6 +613,38 @@ mod tests {
     }
 
     #[test]
+    fn enum_variants_unit_like() {
+        #[allow(dead_code)]
+        #[derive(Serialize)]
+        enum Op {
+            Enter,
+            Exit,
+        }
+        assert_eq!(to_string(&Op::Exit).unwrap(), r#""Exit""#);
+        assert_eq!(
+            to_string(&Op::Exit).unwrap(),
+            serde_json::to_string(&Op::Exit).unwrap()
+        );
+
+        // Numeric values are ignored 🤷
+        #[derive(Serialize)]
+        enum Order {
+            Unordered = 1,
+            Ordered = 42,
+        }
+        assert_eq!(to_string(&Order::Unordered).unwrap(), r#""Unordered""#);
+        assert_eq!(
+            to_string(&Order::Unordered).unwrap(),
+            serde_json::to_string(&Order::Unordered).unwrap()
+        );
+        assert_eq!(to_string(&Order::Ordered).unwrap(), r#""Ordered""#);
+        assert_eq!(
+            to_string(&Order::Ordered).unwrap(),
+            serde_json::to_string(&Order::Ordered).unwrap()
+        );
+    }
+
+    #[test]
     fn enum_variants_tuple_like_structs() {
         #[derive(Serialize)]
         enum Op {
