@@ -108,41 +108,34 @@ impl<'a> Deserializer<'a> {
 
     fn parse_string(&mut self) -> Result<String> {
         let start = self.index;
+        let mut backslash = false;
+        let mut escaped = false;
         loop {
             match self.peek() {
                 Some(b'"') => {
-                    // Counts the number of backslashes in front of the current index.
-                    //
-                    // "some string with \\\" included."
-                    //                  ^^^^^
-                    //                  |||||
-                    //       loop run:  4321|
-                    //                      |
-                    //                   `index`
-                    //
-                    // Since we only get in this code branch if we found a " starting the string and `index` is greater
-                    // than the start position, we know the loop will end no later than this point.
-                    let leading_backslashes = |index: usize| -> usize {
-                        let mut count = 0;
-                        loop {
-                            if self.slice[index - count - 1] == b'\\' {
-                                count += 1;
-                            } else {
-                                return count;
-                            }
-                        }
-                    };
-
-                    let is_escaped = leading_backslashes(self.index) % 2 == 1;
-                    if is_escaped {
+                    if escaped {
+                        escaped = false;
                         self.eat_char(); // just continue
                     } else {
                         let end = self.index;
                         self.eat_char();
-                        return unescape::unescape(&self.slice[start..end]);
+                        return if backslash {
+                            unescape::unescape(&self.slice[start..end])
+                        } else {
+                            String::from_utf8(Vec::from(&self.slice[start..end]))
+                                .map_err(|_| Error::InvalidUnicodeCodePoint)
+                        };
                     }
                 }
-                Some(_) => self.eat_char(),
+                Some(b'\\') => {
+                    backslash = true;
+                    escaped = !escaped;
+                    self.eat_char()
+                }
+                Some(_) => {
+                    escaped = false;
+                    self.eat_char()
+                }
                 None => return Err(Error::EofWhileParsingString),
             }
         }
