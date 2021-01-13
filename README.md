@@ -1,19 +1,12 @@
-# `serde-json-core`
+# serde-json-wasm
 
-> [`serde-json`] for `no_std` programs
+[![serde-json-wasm on crates.io](https://img.shields.io/crates/v/serde-json-wasm.svg)](https://crates.io/crates/serde-json-wasm)
+[![Docs](https://docs.rs/serde-json-wasm/badge.svg)](https://docs.rs/serde-json-wasm)
 
-[`serde-json`]: https://crates.io/crates/serde_json
+A [serde-json] alternative for [CosmWasm] smart contracts.
 
-This project is developed and maintained by the [rust-embedded-community].
-
-[rust-embedded-community]: https://github.com/rust-embedded-community/meta
-
-## [Documentation](https://docs.rs/serde-json-core)
-
-## Minimum Supported Rust Version (MSRV)
-
-This crate is guaranteed to compile on stable Rust 1.62.0 and up. It *might*
-compile with older versions but that may change in any new patch release.
+[serde-json]: https://crates.io/crates/serde_json
+[CosmWasm]: https://cosmwasm.com/
 
 ## License
 
