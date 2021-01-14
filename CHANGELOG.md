@@ -7,6 +7,8 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] - 2021-01-14
+
 ### Changed
 
 - Optimize string serialization / deserialization.
