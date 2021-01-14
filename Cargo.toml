@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 name = "serde-json-wasm"
 readme = "README.md"
 repository = "https://github.com/CosmWasm/serde-json-wasm"
-version = "0.2.3"
+version = "0.3.0"
 exclude = [
     ".cargo/",
     ".github/",
