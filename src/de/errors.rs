@@ -104,6 +104,7 @@ impl fmt::Display for Error {
                 Error::EofWhileParsingList => "EOF while parsing a list.",
                 Error::EofWhileParsingObject => "EOF while parsing an object.",
                 Error::EofWhileParsingString => "EOF while parsing a string.",
+                Error::EofWhileParsingNumber => "EOF while parsing a JSON number.",
                 Error::EofWhileParsingValue => "EOF while parsing a JSON value.",
                 Error::ExpectedColon => "Expected this character to be a `':'`.",
                 Error::ExpectedHighSurrogate => "Expected a high surrogate (D800–DBFF).",
@@ -136,7 +137,6 @@ impl fmt::Display for Error {
                 }
                 Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
                 Error::Custom(msg) => &msg,
-                _ => "Invalid JSON",
             }
         )
     }

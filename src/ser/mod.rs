@@ -58,7 +58,6 @@ impl fmt::Display for Error {
         match self {
             Error::BufferFull => write!(f, "Buffer is full"),
             Error::Custom(msg) => write!(f, "{}", &msg),
-            //_ => write!(f, "Unknown serialization error"),
         }
     }
 }
