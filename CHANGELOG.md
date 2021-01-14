@@ -7,6 +7,12 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Maintenance release:
+	Update clippy version in CI to 1.49.0
+	Fix `clippy::manual-non-exhaustive` warnings
+
 ## [0.2.3] - 2021-01-14
 
 ### Changed
