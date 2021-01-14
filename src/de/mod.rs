@@ -15,12 +15,18 @@ use serde::de::{self, Visitor};
 use self::enum_::{UnitVariantAccess, VariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
+use std::str::from_utf8;
 
 /// Deserializer will parse serde-json-wasm flavored JSON into a
 /// serde-annotated struct
 pub struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
+}
+
+enum StringLike<'a> {
+    Borrowed(&'a str),
+    Owned(String),
 }
 
 impl<'a> Deserializer<'a> {
@@ -106,7 +112,7 @@ impl<'a> Deserializer<'a> {
         }
     }
 
-    fn parse_string(&mut self) -> Result<String> {
+    fn parse_string(&mut self) -> Result<StringLike<'a>> {
         let start = self.index;
         let mut contains_backslash = false;
         let mut escaped = false;
@@ -120,10 +126,14 @@ impl<'a> Deserializer<'a> {
                         let end = self.index;
                         self.eat_char();
                         return if contains_backslash {
-                            unescape::unescape(&self.slice[start..end])
+                            Ok(StringLike::Owned(unescape::unescape(
+                                &self.slice[start..end],
+                            )?))
                         } else {
-                            String::from_utf8(Vec::from(&self.slice[start..end]))
-                                .map_err(|_| Error::InvalidUnicodeCodePoint)
+                            Ok(StringLike::Borrowed(
+                                from_utf8(&self.slice[start..end])
+                                    .map_err(|_| Error::InvalidUnicodeCodePoint)?,
+                            ))
                         };
                     }
                 }
@@ -399,7 +409,11 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         match peek {
             b'"' => {
                 self.eat_char();
-                visitor.visit_string(self.parse_string()?)
+                let str_like = self.parse_string()?;
+                match str_like {
+                    StringLike::Borrowed(str) => visitor.visit_borrowed_str(str),
+                    StringLike::Owned(string) => visitor.visit_string(string),
+                }
             }
             _ => Err(Error::InvalidType),
         }
