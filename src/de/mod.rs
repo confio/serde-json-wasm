@@ -108,7 +108,7 @@ impl<'a> Deserializer<'a> {
 
     fn parse_string(&mut self) -> Result<String> {
         let start = self.index;
-        let mut backslash = false;
+        let mut contains_backslash = false;
         let mut escaped = false;
         loop {
             match self.peek() {
@@ -119,7 +119,7 @@ impl<'a> Deserializer<'a> {
                     } else {
                         let end = self.index;
                         self.eat_char();
-                        return if backslash {
+                        return if contains_backslash {
                             unescape::unescape(&self.slice[start..end])
                         } else {
                             String::from_utf8(Vec::from(&self.slice[start..end]))
@@ -128,7 +128,7 @@ impl<'a> Deserializer<'a> {
                     }
                 }
                 Some(b'\\') => {
-                    backslash = true;
+                    contains_backslash = true;
                     escaped = !escaped;
                     self.eat_char()
                 }
