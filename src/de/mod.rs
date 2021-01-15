@@ -713,6 +713,25 @@ mod tests {
     }
 
     #[test]
+    fn tuple() {
+        type Pair = (i64, i64);
+        type Wrapped = (i64,); // Comma differentiates one element tuple from a primary type surrounded by parentheses
+        type Unit = ();
+
+        let pair: Pair = (1, 2);
+        assert_eq!(from_str("[1,2]"), Ok(pair));
+        assert_eq!(serde_json::from_str::<Pair>("[1,2]").unwrap(), pair);
+
+        let wrapped: Wrapped = (5,);
+        assert_eq!(from_str("[5]"), Ok(wrapped));
+        assert_eq!(serde_json::from_str::<Wrapped>("[5]").unwrap(), wrapped);
+
+        let unit: Unit = ();
+        assert_eq!(from_str("null"), Ok(unit));
+        assert_eq!(serde_json::from_str::<()>("null").unwrap(), unit);
+    }
+
+    #[test]
     fn tuple_variant() {
         #[derive(Debug, Deserialize, PartialEq)]
         enum Ops {
