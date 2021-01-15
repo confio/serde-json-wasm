@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add support for Unit () deserialization.
+
 ## [0.3.0] - 2021-01-14
 
 ### Changed
