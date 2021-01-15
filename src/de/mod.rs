@@ -470,20 +470,12 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         }
     }
 
+    /// Resolves "null" to requested unit struct
     fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
     where
         V: Visitor<'de>,
     {
-        let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
-
-        if peek == b'n' {
-            self.eat_char();
-            self.parse_ident(b"ull")?;
-            let ret = visitor.visit_unit()?;
-            Ok(ret)
-        } else {
-            self.deserialize_unit(visitor)
-        }
+        self.deserialize_unit(visitor)
     }
 
     /// Unsupported. We can’t parse newtypes because we don’t know the underlying type.
@@ -1077,6 +1069,12 @@ mod tests {
 
         assert_eq!(from_str(r#"{}"#), Ok(Empty {}));
         assert_eq!(serde_json::from_str::<Empty>(r#"{}"#).unwrap(), Empty {});
+    }
+
+    #[test]
+    fn unit() {
+        assert_eq!(from_str(r#"null"#), Ok(()));
+        serde_json::from_str::<()>(r#"null"#).unwrap();
     }
 
     #[test]
