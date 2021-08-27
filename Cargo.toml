@@ -4,22 +4,17 @@ authors = [
     "Ethan Frey <ethanfrey@noreply.github.com>",
     "Simon Warta <webmaster128@noreply.github.com>",
     "Mauro Lacy <maurolacy@noreply.github.com>",
+    "Dmitry Novikov <novikov.dm.al@gmail.com>",
 ]
 categories = ["wasm"]
-description = "serde_json for Wasm programs (small, deterministic, no floats)"
-documentation = "https://docs.rs/serde-json-wasm"
+description = "serde_json for Wasm programs, exclude floats and std"
 edition = "2018"
-keywords = ["serde", "json", "wasm"]
+keywords = ["serde", "json", "wasm", "no_std"]
 license = "MIT OR Apache-2.0"
 name = "serde-json-wasm"
 readme = "README.md"
-repository = "https://github.com/CosmWasm/serde-json-wasm"
+repository = "https://github.com/breathx/serde-json-wasm"
 version = "0.3.1"
-exclude = [
-    ".cargo/",
-    ".github/",
-    ".gitignore",
-]
 
 [dependencies]
 serde = { version = "^1.0.80", default-features = false, features = ["alloc"] }

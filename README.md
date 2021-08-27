@@ -1,9 +1,6 @@
 # serde-json-wasm
 
-[![serde-json-wasm on crates.io](https://img.shields.io/crates/v/serde-json-wasm.svg)](https://crates.io/crates/serde-json-wasm)
-[![Docs](https://docs.rs/serde-json-wasm/badge.svg)](https://docs.rs/serde-json-wasm)
-
-A [serde-json] alternative for [CosmWasm] smart contracts.
+A [serde-json] alternative for ** no_std ** smart contracts, forked by [CosmWasm].
 
 [serde-json]: https://crates.io/crates/serde_json
 [CosmWasm]: https://cosmwasm.com/
