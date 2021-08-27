@@ -865,7 +865,7 @@ mod tests {
     #[test]
     fn struct_empty() {
         #[derive(Debug, Deserialize, PartialEq)]
-        struct Empty {};
+        struct Empty {}
 
         assert_eq!(from_str(r#"{}"#), Ok(Empty {}));
         assert_eq!(serde_json::from_str::<Empty>(r#"{}"#).unwrap(), Empty {});
