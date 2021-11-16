@@ -356,7 +356,10 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         };
 
         let result = match self.peek() {
-            Some(b'0'..=b'9' | b'-') => deserialize_signed!(self, visitor, i128, visit_i128),
+            // after rust merged or-patterns feature, these two clause can be merged.
+            // error[E0658]: or-patterns syntax is experimental
+            Some(b'0'..=b'9') => deserialize_signed!(self, visitor, i128, visit_i128),
+            Some(b'-') => deserialize_signed!(self, visitor, i128, visit_i128),
             _ => return Err(Error::InvalidType),
         };
         match self.peek() {
