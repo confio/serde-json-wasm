@@ -728,7 +728,7 @@ mod tests {
 
         let unit: Unit = ();
         assert_eq!(from_str("null"), Ok(unit));
-        assert_eq!(serde_json::from_str::<()>("null").unwrap(), unit);
+        serde_json::from_str::<()>("null").unwrap();
     }
 
     #[test]

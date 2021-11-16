@@ -3,9 +3,9 @@
 use std::mem::MaybeUninit;
 use std::{error, fmt, str};
 
-use serde::ser;
 use serde::ser::SerializeStruct as _;
 use serde::Serialize;
+use serde::{ser, serde_if_integer128};
 
 use self::map::SerializeMap;
 use std::vec::Vec;
@@ -273,6 +273,17 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         serialize_signed!(self, 20, v, i64, u64)
     }
 
+    serde_if_integer128! {
+        fn serialize_i128(self, v: i128) -> Result<Self::Ok> {
+            // -170141183460469231731687303715884105728
+            let res: Result<Self::Ok> = serialize_signed!(self, 40, v, i128, u128);
+            res?;
+            self.buf.insert(0, b'"');
+            self.buf.push(b'"');
+            Ok(())
+        }
+    }
+
     fn serialize_u8(self, v: u8) -> Result<Self::Ok> {
         // 255
         serialize_unsigned!(self, 3, v)
@@ -291,6 +302,17 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     fn serialize_u64(self, v: u64) -> Result<Self::Ok> {
         // 18446744073709551615
         serialize_unsigned!(self, 20, v)
+    }
+
+    serde_if_integer128! {
+        fn serialize_u128(self, v: u128) -> Result<Self::Ok> {
+            // 340282366920938463463374607431768211455
+            let res: Result<Self::Ok> = serialize_unsigned!(self, 39, v);
+            res?;
+            self.buf.insert(0, b'"');
+            self.buf.push(b'"');
+            Ok(())
+        }
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok> {
@@ -522,6 +544,7 @@ impl ser::SerializeTupleVariant for Unreachable {
 #[cfg(test)]
 mod tests {
     use super::to_string;
+    use serde::serde_if_integer128;
     use serde::Deserialize;
     use serde_derive::Serialize;
 
@@ -592,6 +615,65 @@ mod tests {
         assert_eq!(to_string::<i64>(&i64::MAX).unwrap(), "9223372036854775807");
         assert_eq!(to_string::<i64>(&-1).unwrap(), "-1");
         assert_eq!(to_string::<i64>(&i64::MIN).unwrap(), "-9223372036854775808");
+
+        serde_if_integer128! {
+            assert_eq!(to_string::<u128>(&0).unwrap(), "\"0\"");
+            assert_eq!(to_string::<u128>(&1).unwrap(), "\"1\"");
+            assert_eq!(to_string::<u128>(&456789).unwrap(), "\"456789\"");
+            assert_eq!(to_string::<u128>(&4294967295).unwrap(), "\"4294967295\"");
+            assert_eq!(to_string::<u128>(&4294967296).unwrap(), "\"4294967296\"");
+            assert_eq!(
+                to_string::<u128>(&9007199254740991).unwrap(),
+                "\"9007199254740991\""
+            ); // Number.MAX_SAFE_INTEGER
+            assert_eq!(
+                to_string::<u128>(&9007199254740992).unwrap(),
+                "\"9007199254740992\""
+            ); // Number.MAX_SAFE_INTEGER+1
+            assert_eq!(
+                to_string::<u128>(&9223372036854775807).unwrap(),
+                "\"9223372036854775807\""
+            );
+            assert_eq!(
+                to_string::<u128>(&9223372036854775808).unwrap(),
+                "\"9223372036854775808\""
+            );
+            assert_eq!(
+                to_string::<u128>(&u128::MAX).unwrap(),
+                "\"340282366920938463463374607431768211455\""
+            );
+
+            assert_eq!(to_string::<i128>(&0).unwrap(), "\"0\"");
+            assert_eq!(to_string::<i128>(&1).unwrap(), "\"1\"");
+            assert_eq!(to_string::<i128>(&456789).unwrap(), "\"456789\"");
+            assert_eq!(to_string::<i128>(&4294967295).unwrap(), "\"4294967295\"");
+            assert_eq!(to_string::<i128>(&4294967296).unwrap(), "\"4294967296\"");
+            assert_eq!(
+                to_string::<i128>(&9007199254740991).unwrap(),
+                "\"9007199254740991\""
+            ); // Number.MAX_SAFE_INTEGER
+            assert_eq!(
+                to_string::<i128>(&9007199254740992).unwrap(),
+                "\"9007199254740992\""
+            ); // Number.MAX_SAFE_INTEGER+1
+            assert_eq!(
+                to_string::<i128>(&9223372036854775807).unwrap(),
+                "\"9223372036854775807\""
+            );
+            assert_eq!(
+                to_string::<i128>(&9223372036854775808).unwrap(),
+                "\"9223372036854775808\""
+            );
+            assert_eq!(
+                to_string::<i128>(&i128::MAX).unwrap(),
+                "\"170141183460469231731687303715884105727\""
+            );
+            assert_eq!(to_string::<i128>(&-1).unwrap(), "\"-1\"");
+            assert_eq!(
+                to_string::<i128>(&i128::MIN).unwrap(),
+                "\"-170141183460469231731687303715884105728\""
+            );
+        }
     }
 
     #[test]
