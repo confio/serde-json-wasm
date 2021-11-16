@@ -617,61 +617,61 @@ mod tests {
         assert_eq!(to_string::<i64>(&i64::MIN).unwrap(), "-9223372036854775808");
 
         serde_if_integer128! {
-            assert_eq!(to_string::<u128>(&0).unwrap(), "\"0\"");
-            assert_eq!(to_string::<u128>(&1).unwrap(), "\"1\"");
-            assert_eq!(to_string::<u128>(&456789).unwrap(), "\"456789\"");
-            assert_eq!(to_string::<u128>(&4294967295).unwrap(), "\"4294967295\"");
-            assert_eq!(to_string::<u128>(&4294967296).unwrap(), "\"4294967296\"");
+            assert_eq!(to_string::<u128>(&0).unwrap(), r#""0""#);
+            assert_eq!(to_string::<u128>(&1).unwrap(), r#""1""#);
+            assert_eq!(to_string::<u128>(&456789).unwrap(), r#""456789""#);
+            assert_eq!(to_string::<u128>(&4294967295).unwrap(), r#""4294967295""#);
+            assert_eq!(to_string::<u128>(&4294967296).unwrap(), r#""4294967296""#);
             assert_eq!(
                 to_string::<u128>(&9007199254740991).unwrap(),
-                "\"9007199254740991\""
+                r#""9007199254740991""#
             ); // Number.MAX_SAFE_INTEGER
             assert_eq!(
                 to_string::<u128>(&9007199254740992).unwrap(),
-                "\"9007199254740992\""
+                r#""9007199254740992""#
             ); // Number.MAX_SAFE_INTEGER+1
             assert_eq!(
                 to_string::<u128>(&9223372036854775807).unwrap(),
-                "\"9223372036854775807\""
+                r#""9223372036854775807""#
             );
             assert_eq!(
                 to_string::<u128>(&9223372036854775808).unwrap(),
-                "\"9223372036854775808\""
+                r#""9223372036854775808""#
             );
             assert_eq!(
                 to_string::<u128>(&u128::MAX).unwrap(),
-                "\"340282366920938463463374607431768211455\""
+                r#""340282366920938463463374607431768211455""#
             );
 
-            assert_eq!(to_string::<i128>(&0).unwrap(), "\"0\"");
-            assert_eq!(to_string::<i128>(&1).unwrap(), "\"1\"");
-            assert_eq!(to_string::<i128>(&456789).unwrap(), "\"456789\"");
-            assert_eq!(to_string::<i128>(&4294967295).unwrap(), "\"4294967295\"");
-            assert_eq!(to_string::<i128>(&4294967296).unwrap(), "\"4294967296\"");
+            assert_eq!(to_string::<i128>(&0).unwrap(), r#""0""#);
+            assert_eq!(to_string::<i128>(&1).unwrap(), r#""1""#);
+            assert_eq!(to_string::<i128>(&456789).unwrap(), r#""456789""#);
+            assert_eq!(to_string::<i128>(&4294967295).unwrap(), r#""4294967295""#);
+            assert_eq!(to_string::<i128>(&4294967296).unwrap(), r#""4294967296""#);
             assert_eq!(
                 to_string::<i128>(&9007199254740991).unwrap(),
-                "\"9007199254740991\""
+                r#""9007199254740991""#
             ); // Number.MAX_SAFE_INTEGER
             assert_eq!(
                 to_string::<i128>(&9007199254740992).unwrap(),
-                "\"9007199254740992\""
+                r#""9007199254740992""#
             ); // Number.MAX_SAFE_INTEGER+1
             assert_eq!(
                 to_string::<i128>(&9223372036854775807).unwrap(),
-                "\"9223372036854775807\""
+                r#""9223372036854775807""#
             );
             assert_eq!(
                 to_string::<i128>(&9223372036854775808).unwrap(),
-                "\"9223372036854775808\""
+                r#""9223372036854775808""#
             );
             assert_eq!(
                 to_string::<i128>(&i128::MAX).unwrap(),
-                "\"170141183460469231731687303715884105727\""
+                r#""170141183460469231731687303715884105727""#
             );
-            assert_eq!(to_string::<i128>(&-1).unwrap(), "\"-1\"");
+            assert_eq!(to_string::<i128>(&-1).unwrap(), r#""-1""#);
             assert_eq!(
                 to_string::<i128>(&i128::MIN).unwrap(),
-                "\"-170141183460469231731687303715884105728\""
+                r#""-170141183460469231731687303715884105728""#
             );
         }
     }
