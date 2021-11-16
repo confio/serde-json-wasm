@@ -11,7 +11,6 @@ pub use errors::{Error, Result};
 use std::str::{self, FromStr};
 
 use serde::de::{self, Visitor};
-use serde::serde_if_integer128;
 
 use self::enum_::{UnitVariantAccess, VariantAccess};
 use self::map::MapAccess;
@@ -347,31 +346,25 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         deserialize_signed!(self, visitor, i64, visit_i64)
     }
 
-    serde_if_integer128! {
-        fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
-        {
-            match self
-                .parse_whitespace()
-                .ok_or(Error::EofWhileParsingValue)? {
-                    b'"' => {
-                        self.eat_char()
-                    }
-                    _ => return Err(Error::InvalidType)
-                };
+    fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: Visitor<'de>,
+    {
+        match self.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
+            b'"' => self.eat_char(),
+            _ => return Err(Error::InvalidType),
+        };
 
-            let result = match self.peek() {
-                Some(b'0'..=b'9' | b'-') => deserialize_signed!(self, visitor, i128, visit_i128),
-                _ => return Err(Error::InvalidType)
-            };
-            match self.peek() {
-                Some(b'"') => {
-                    self.eat_char();
-                    result
-                }
-                _ => Err(Error::InvalidType)
+        let result = match self.peek() {
+            Some(b'0'..=b'9' | b'-') => deserialize_signed!(self, visitor, i128, visit_i128),
+            _ => return Err(Error::InvalidType),
+        };
+        match self.peek() {
+            Some(b'"') => {
+                self.eat_char();
+                result
             }
+            _ => Err(Error::InvalidType),
         }
     }
 
@@ -403,32 +396,28 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         deserialize_unsigned!(self, visitor, u64, visit_u64)
     }
 
-    serde_if_integer128! {
-        fn deserialize_u128<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
-        {
-            match self
-                .parse_whitespace()
-                .ok_or(Error::EofWhileParsingValue)? {
-                    b'"' => {
-                        self.eat_char();
-                    }
-                    _ => return Err(Error::InvalidType)
-                };
-
-            let result = match self.peek() {
-                Some(b'-') => return Err(Error::InvalidNumber),
-                Some(b'0'..=b'9') => deserialize_unsigned!(self, visitor, u128, visit_u128),
-                _ => return Err(Error::InvalidType)
-            };
-            match self.peek() {
-                Some(b'"') => {
-                    self.eat_char();
-                    result
-                }
-                _ => Err(Error::InvalidType)
+    fn deserialize_u128<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: Visitor<'de>,
+    {
+        match self.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
+            b'"' => {
+                self.eat_char();
             }
+            _ => return Err(Error::InvalidType),
+        };
+
+        let result = match self.peek() {
+            Some(b'-') => return Err(Error::InvalidNumber),
+            Some(b'0'..=b'9') => deserialize_unsigned!(self, visitor, u128, visit_u128),
+            _ => return Err(Error::InvalidType),
+        };
+        match self.peek() {
+            Some(b'"') => {
+                self.eat_char();
+                result
+            }
+            _ => Err(Error::InvalidType),
         }
     }
 
