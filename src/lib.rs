@@ -133,4 +133,75 @@ mod test {
         assert_eq!(from_str::<Item>(&to_string(&min).unwrap()).unwrap(), min);
         assert_eq!(from_str::<Item>(&to_string(&max).unwrap()).unwrap(), max);
     }
+
+    #[test]
+    fn untagged() {
+        #[derive(Debug, Deserialize, Serialize, PartialEq)]
+        #[serde(untagged)]
+        enum UntaggedEnum {
+            S(String),
+            I(i64),
+        }
+
+        let s = UntaggedEnum::S("Some string".to_owned());
+        let i = UntaggedEnum::I(32);
+
+        assert_eq!(from_slice::<UntaggedEnum>(&to_vec(&s).unwrap()).unwrap(), s);
+        assert_eq!(from_slice::<UntaggedEnum>(&to_vec(&i).unwrap()).unwrap(), i);
+
+        assert_eq!(
+            from_str::<UntaggedEnum>(&to_string(&s).unwrap()).unwrap(),
+            s
+        );
+        assert_eq!(
+            from_str::<UntaggedEnum>(&to_string(&i).unwrap()).unwrap(),
+            i
+        );
+    }
+
+    #[test]
+    fn untagged_structures() {
+        #[derive(Debug, Deserialize, Serialize, PartialEq)]
+        #[serde(untagged)]
+        enum ModelOrItem {
+            Model(Model),
+            Item(Item),
+        }
+
+        let model = ModelOrItem::Model(Model::Post {
+            category: "Rust".to_owned(),
+            author: Address("no-reply@domain.com".to_owned()),
+        });
+
+        let item = ModelOrItem::Item(Item {
+            model: Model::Comment,
+            title: "Title".to_owned(),
+            content: None,
+            list: vec![13, 14],
+            published: true,
+            comments: vec![],
+            stats: Stats {
+                views: 110,
+                score: 12,
+            },
+        });
+
+        assert_eq!(
+            from_slice::<ModelOrItem>(&to_vec(&model).unwrap()).unwrap(),
+            model
+        );
+        assert_eq!(
+            from_slice::<ModelOrItem>(&to_vec(&item).unwrap()).unwrap(),
+            item
+        );
+
+        assert_eq!(
+            from_str::<ModelOrItem>(&to_string(&model).unwrap()).unwrap(),
+            model
+        );
+        assert_eq!(
+            from_str::<ModelOrItem>(&to_string(&item).unwrap()).unwrap(),
+            item
+        );
+    }
 }

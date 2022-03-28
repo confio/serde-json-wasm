@@ -64,11 +64,12 @@ struct MapKey<'a, 'b> {
 impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
     type Error = Error;
 
-    fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value, Error>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        // Only identifiers are proper json object keys
+        self.deserialize_identifier(visitor)
     }
 
     fn deserialize_bool<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
