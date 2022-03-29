@@ -717,7 +717,7 @@ mod tests {
 
         type BigPair = (u128, u128);
 
-        let pair: BigPair = (u128::MAX, u128::MAX);
+        let pair: BigPair = (std::u128::MAX, std::u128::MAX);
 
         assert_eq!(
             to_string(&pair).unwrap(),
