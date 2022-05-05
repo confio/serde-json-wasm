@@ -136,7 +136,7 @@ impl fmt::Display for Error {
                      value."
                 }
                 Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
-                Error::Custom(msg) => &msg,
+                Error::Custom(msg) => msg,
             }
         )
     }

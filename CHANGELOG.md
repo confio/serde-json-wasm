@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this
 project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.1] - 2022-05-05
+
+### Changed
+- Properly serialize `u128`/`i128` types when embedded in structs
+
 ## [0.4.0] - 2022-03-29
+
 ### Added
 - Add support for `#[serde(untagged)]` enums representation
 
