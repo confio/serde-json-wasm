@@ -68,8 +68,8 @@ pub enum Error {
     /// JSON has a comma after the last value in an array or map.
     TrailingComma,
 
-    /// Custom error message from serde
-    Custom(String),
+    /// Custom error message from serde that should be discarded to avoid floats
+    Custom,
 }
 
 impl error::Error for Error {
@@ -83,11 +83,11 @@ impl error::Error for Error {
 }
 
 impl de::Error for Error {
-    fn custom<T>(msg: T) -> Self
+    fn custom<T>(_msg: T) -> Self
     where
         T: fmt::Display,
     {
-        Error::Custom(msg.to_string())
+        Error::Custom
     }
 }
 
@@ -132,7 +132,7 @@ impl fmt::Display for Error {
                      value."
                 }
                 Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
-                Error::Custom(msg) => msg,
+                Error::Custom => "Custom error from serde was discarded to avoid float inclusion",
             }
         )
     }

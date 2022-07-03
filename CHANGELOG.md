@@ -7,6 +7,12 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Removed custom serde error formatting to avoid float inclusion. ([#42])
+
+[#42]: https://github.com/CosmWasm/serde-json-wasm/issues/42
+
 ## [0.5.0] - 2022-12-06
 
 ### Added
