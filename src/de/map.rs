@@ -1,6 +1,5 @@
-use serde::de::{self, Visitor};
-
 use crate::de::{Deserializer, Error};
+use serde::de::{self, Visitor};
 
 pub struct MapAccess<'a, 'b> {
     de: &'a mut Deserializer<'b>,
@@ -11,6 +10,56 @@ impl<'a, 'b> MapAccess<'a, 'b> {
     pub(crate) fn new(de: &'a mut Deserializer<'b>) -> Self {
         MapAccess { de, first: true }
     }
+}
+
+macro_rules! deserialize_signed_key {
+    ($self:ident, $visitor:ident, $ixx:ident, $visit_ixx:ident) => {{
+        let de = $self.de;
+        match de.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
+            b'"' => de.eat_char(),
+            _ => return Err(Error::InvalidType),
+        };
+
+        let result = match de.peek() {
+            // after rust merged or-patterns feature, these two clause can be merged.
+            // error[E0658]: or-patterns syntax is experimental
+            Some(b'0'..=b'9') => super::deserialize_signed!(de, $visitor, $ixx, $visit_ixx),
+            Some(b'-') => super::deserialize_signed!(de, $visitor, $ixx, $visit_ixx),
+            _ => return Err(Error::InvalidType),
+        };
+        match de.peek() {
+            Some(b'"') => {
+                de.eat_char();
+                result
+            }
+            _ => Err(Error::InvalidType),
+        }
+    }};
+}
+
+macro_rules! deserialize_unsigned_key {
+    ($self:ident, $visitor:ident, $ixx:ident, $visit_ixx:ident) => {{
+        let de = $self.de;
+        match de.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
+            b'"' => de.eat_char(),
+            _ => return Err(Error::InvalidType),
+        };
+
+        let result = match de.peek() {
+            // after rust merged or-patterns feature, these two clause can be merged.
+            // error[E0658]: or-patterns syntax is experimental
+            Some(b'0'..=b'9') => super::deserialize_unsigned!(de, $visitor, $ixx, $visit_ixx),
+            Some(b'-') => super::deserialize_unsigned!(de, $visitor, $ixx, $visit_ixx),
+            _ => return Err(Error::InvalidType),
+        };
+        match de.peek() {
+            Some(b'"') => {
+                de.eat_char();
+                result
+            }
+            _ => Err(Error::InvalidType),
+        }
+    }};
 }
 
 impl<'a, 'de> de::MapAccess<'de> for MapAccess<'a, 'de> {
@@ -79,60 +128,74 @@ impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
         unreachable!()
     }
 
-    fn deserialize_i8<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_signed_key!(self, visitor, i8, visit_i8)
     }
 
-    fn deserialize_i16<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_signed_key!(self, visitor, i16, visit_i16)
     }
 
-    fn deserialize_i32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_signed_key!(self, visitor, i32, visit_i32)
     }
 
-    fn deserialize_i64<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_signed_key!(self, visitor, i64, visit_i64)
     }
 
-    fn deserialize_u8<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_i128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_signed_key!(self, visitor, i128, visit_i128)
     }
 
-    fn deserialize_u16<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_unsigned_key!(self, visitor, u8, visit_u8)
     }
 
-    fn deserialize_u32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_unsigned_key!(self, visitor, u16, visit_u16)
     }
 
-    fn deserialize_u64<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        deserialize_unsigned_key!(self, visitor, u32, visit_u32)
+    }
+
+    fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        deserialize_unsigned_key!(self, visitor, u64, visit_u64)
+    }
+
+    fn deserialize_u128<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        deserialize_unsigned_key!(self, visitor, u128, visit_u128)
     }
 
     fn deserialize_f32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
@@ -163,11 +226,11 @@ impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
         self.de.deserialize_str(visitor)
     }
 
-    fn deserialize_string<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unreachable!()
+        self.de.deserialize_string(visitor)
     }
 
     fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value, Self::Error>

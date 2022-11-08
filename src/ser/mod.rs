@@ -8,8 +8,6 @@ use serde::ser::SerializeStruct as _;
 use serde::Serialize;
 
 use self::map::SerializeMap;
-use std::vec::Vec;
-
 use self::seq::SerializeSeq;
 use self::struct_::{SerializeStruct, SerializeStructVariant};
 
@@ -717,7 +715,7 @@ mod tests {
 
         type BigPair = (u128, u128);
 
-        let pair: BigPair = (std::u128::MAX, std::u128::MAX);
+        let pair: BigPair = (u128::MAX, u128::MAX);
 
         assert_eq!(
             to_string(&pair).unwrap(),

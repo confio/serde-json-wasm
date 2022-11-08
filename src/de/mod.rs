@@ -208,6 +208,7 @@ macro_rules! deserialize_unsigned {
         }
     }};
 }
+pub(crate) use deserialize_unsigned;
 
 macro_rules! deserialize_signed {
     ($self:ident, $visitor:ident, $ixx:ident, $visit_ixx:ident) => {{
@@ -250,6 +251,7 @@ macro_rules! deserialize_signed {
         }
     }};
 }
+pub(crate) use deserialize_signed;
 
 macro_rules! deserialize_fromstr {
     ($self:ident, $visitor:ident, $typ:ident, $visit_fn:ident, $pattern:expr) => {{
