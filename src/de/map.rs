@@ -230,7 +230,7 @@ impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
     where
         V: Visitor<'de>,
     {
-        self.de.deserialize_string(visitor)
+        self.deserialize_str(visitor)
     }
 
     fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
