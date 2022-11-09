@@ -24,7 +24,6 @@ exclude = [
 
 [dependencies]
 ryu = "1.0.5"
-serde-cw-value = "0.7.0"
 
 [dependencies.serde]
 default-features = false
