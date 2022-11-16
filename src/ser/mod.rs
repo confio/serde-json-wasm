@@ -1127,8 +1127,7 @@ mod tests {
 
     #[test]
     fn test_tuple_struct_roundtrip() {
-        use serde_derive::Deserialize;
-
+    
         #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
         struct A(u32, Option<String>, u16, bool);
 
@@ -1167,6 +1166,8 @@ mod tests {
 
     #[test]
     fn serialize_embedded_enum() {
+        use serde_derive::Deserialize;
+
         #[derive(Debug, Deserialize, Serialize, PartialEq)]
         #[serde(rename_all = "lowercase")]
         pub enum MyResult {
