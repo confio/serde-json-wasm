@@ -1127,7 +1127,6 @@ mod tests {
 
     #[test]
     fn test_tuple_struct_roundtrip() {
-    
         #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
         struct A(u32, Option<String>, u16, bool);
 
@@ -1162,6 +1161,30 @@ mod tests {
 
         let sd3 = SimpleDecimal(22_222.777);
         assert_eq!(&*crate::to_string(&sd3).unwrap(), r#"22222.78"#);
+    }
+
+    #[test]
+    fn hash_map() {
+        use std::collections::HashMap;
+
+        // empty map
+        assert_eq!(to_string(&HashMap::<(), ()>::new()).unwrap(), r#"{}"#);
+
+        // One element
+        let mut map = HashMap::new();
+        map.insert("my_age", 28);
+        assert_eq!(to_string(&map).unwrap(), r#"{"my_age":28}"#);
+
+        // HashMap does not have deterministic iteration order (except in the Wasm target).
+        // So the two element map is serialized as one of two options.
+        let mut two_values = HashMap::new();
+        two_values.insert("my_name", "joseph");
+        two_values.insert("her_name", "aline");
+        let serialized = to_string(&two_values).unwrap();
+        assert!(
+            serialized == r#"{"her_name":"aline","my_name":"joseph"}"#
+                || serialized == r#"{"my_name":"joseph","her_name":"aline"}"#
+        );
     }
 
     #[test]
