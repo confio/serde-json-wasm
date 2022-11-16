@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Added
+
+- Add support for map (de)serialization.
+
 ### Changed
 
 - Bump min supported Rust version to 1.59.0 (same as cosmwasm-std)
