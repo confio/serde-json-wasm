@@ -2,6 +2,8 @@ use serde::ser;
 
 use crate::ser::{Error, Result, Serializer};
 
+use super::MapKeySerializer;
+
 pub struct SerializeMap<'a> {
     ser: &'a mut Serializer,
     first: bool,
@@ -30,7 +32,8 @@ impl<'a> ser::SerializeMap for SerializeMap<'a> {
             self.ser.push(b',')?;
         }
         self.first = false;
-        key.serialize(&mut *self.ser)?;
+        // Use key serializer to unsure key type validity.
+        key.serialize(MapKeySerializer { ser: self.ser })?;
         self.ser.extend_from_slice(b":")?;
         Ok(())
     }
