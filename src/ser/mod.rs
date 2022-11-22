@@ -1,6 +1,5 @@
 //! Serialize a Rust data structure into JSON data
 
-use std::mem::MaybeUninit;
 use std::{error, fmt, str};
 
 use serde::ser;
@@ -153,7 +152,7 @@ impl Serializer {
 // which take 200+ bytes of ROM / Flash
 macro_rules! serialize_unsigned {
     ($self:ident, $N:expr, $v:expr) => {{
-        let mut buf: [MaybeUninit<u8>; $N] = [MaybeUninit::uninit(); $N];
+        let mut buf: [core::mem::MaybeUninit<u8>; $N] = [core::mem::MaybeUninit::uninit(); $N];
 
         let mut v = $v;
         let mut i = $N - 1;
@@ -174,6 +173,8 @@ macro_rules! serialize_unsigned {
         $self.extend_from_slice(buf)
     }};
 }
+// Export for use in map
+pub(crate) use serialize_unsigned;
 
 macro_rules! serialize_signed {
     ($self:ident, $N:expr, $v:expr, $ixx:ident, $uxx:ident) => {{
@@ -186,7 +187,7 @@ macro_rules! serialize_signed {
             (false, v as $uxx)
         };
 
-        let mut buf: [MaybeUninit<u8>; $N] = [MaybeUninit::uninit(); $N];
+        let mut buf: [core::mem::MaybeUninit<u8>; $N] = [core::mem::MaybeUninit::uninit(); $N];
         let mut i = $N - 1;
         loop {
             buf[i].write((v % 10) as u8 + b'0');
@@ -219,6 +220,8 @@ macro_rules! serialize_ryu {
         $self.extend_from_slice(printed.as_bytes())
     }};
 }
+// Export for use in map
+pub(crate) use serialize_signed;
 
 /// Upper-case hex for value in 0..16, encoded as ASCII bytes
 fn hex_4bit(c: u8) -> u8 {
@@ -518,214 +521,6 @@ impl ser::Error for Error {
         T: fmt::Display,
     {
         Error::Custom(msg.to_string())
-    }
-}
-
-/// Wrapper around Serializer that only allows serialization of valid JSON key types (strings).
-struct MapKeySerializer<'a> {
-    ser: &'a mut Serializer,
-}
-
-fn key_must_be_a_string() -> Error {
-    Error::Custom("JSON object key is required to be a string type.".to_string())
-}
-
-macro_rules! serialize_unsigned_key {
-    ($self:ident, $N:expr, $v:expr) => {{
-        let ser = $self.ser;
-        ser.buf.push(b'"');
-        let res: Result<Self::Ok> = serialize_unsigned!(ser, $N, $v);
-        res?;
-        ser.buf.push(b'"');
-        Ok(())
-    }};
-}
-
-macro_rules! serialize_signed_key {
-    ($self:ident, $N:expr, $v:expr, $ixx:ident, $uxx:ident) => {{
-        let ser = $self.ser;
-        ser.buf.push(b'"');
-        let res: Result<Self::Ok> = serialize_signed!(ser, $N, $v, $ixx, $uxx);
-        res?;
-        ser.buf.push(b'"');
-        Ok(())
-    }};
-}
-
-impl<'a> ser::Serializer for MapKeySerializer<'a> {
-    type Ok = ();
-    type Error = Error;
-    type SerializeSeq = SerializeSeq<'a>;
-    type SerializeTuple = SerializeSeq<'a>;
-    type SerializeTupleStruct = SerializeSeq<'a>;
-    type SerializeTupleVariant = SerializeSeq<'a>;
-    type SerializeMap = SerializeMap<'a>;
-    type SerializeStruct = SerializeStruct<'a>;
-    type SerializeStructVariant = SerializeStructVariant<'a>;
-
-    fn serialize_bool(self, _value: bool) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-    #[inline]
-    fn serialize_str(self, value: &str) -> Result<()> {
-        self.ser.serialize_str(value)
-    }
-
-    #[inline]
-    fn serialize_unit_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        variant: &'static str,
-    ) -> Result<()> {
-        self.ser.serialize_str(variant)
-    }
-
-    #[inline]
-    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<()>
-    where
-        T: ?Sized + Serialize,
-    {
-        value.serialize(self)
-    }
-
-    fn serialize_i8(self, value: i8) -> Result<()> {
-        serialize_signed_key!(self, 4, value, i8, u8)
-    }
-
-    fn serialize_i16(self, value: i16) -> Result<()> {
-        serialize_signed_key!(self, 6, value, i16, u16)
-    }
-
-    fn serialize_i32(self, value: i32) -> Result<()> {
-        serialize_signed_key!(self, 11, value, i32, u32)
-    }
-
-    fn serialize_i64(self, value: i64) -> Result<()> {
-        serialize_signed_key!(self, 20, value, i64, u64)
-    }
-
-    fn serialize_i128(self, value: i128) -> Result<()> {
-        serialize_signed_key!(self, 40, value, i128, u128)
-    }
-
-    fn serialize_u8(self, value: u8) -> Result<()> {
-        serialize_unsigned_key!(self, 3, value)
-    }
-
-    fn serialize_u16(self, value: u16) -> Result<()> {
-        serialize_unsigned_key!(self, 5, value)
-    }
-
-    fn serialize_u32(self, value: u32) -> Result<()> {
-        serialize_unsigned_key!(self, 10, value)
-    }
-
-    fn serialize_u64(self, value: u64) -> Result<()> {
-        serialize_unsigned_key!(self, 20, value)
-    }
-
-    fn serialize_u128(self, value: u128) -> Result<()> {
-        serialize_unsigned_key!(self, 39, value)
-    }
-
-    fn serialize_f32(self, _value: f32) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_f64(self, _value: f64) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_char(self, value: char) -> Result<()> {
-        self.ser.serialize_str(&value.to_string())
-    }
-
-    fn serialize_bytes(self, _value: &[u8]) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_unit(self) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_newtype_variant<T>(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _value: &T,
-    ) -> Result<()>
-    where
-        T: ?Sized + Serialize,
-    {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_none(self) -> Result<()> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_some<T>(self, _value: &T) -> Result<()>
-    where
-        T: ?Sized + Serialize,
-    {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_tuple_struct(
-        self,
-        _name: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeTupleStruct> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_tuple_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeTupleVariant> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
-        Err(key_must_be_a_string())
-    }
-
-    fn serialize_struct_variant(
-        self,
-        _name: &'static str,
-        _variant_index: u32,
-        _variant: &'static str,
-        _len: usize,
-    ) -> Result<Self::SerializeStructVariant> {
-        Err(key_must_be_a_string())
-    }
-
-    fn collect_str<T>(self, _value: &T) -> Result<()>
-    where
-        T: ?Sized + fmt::Display,
-    {
-        unreachable!()
     }
 }
 
@@ -1457,7 +1252,7 @@ mod tests {
 
     #[test]
     fn invalid_json_key() {
-        use crate::ser::key_must_be_a_string;
+        use crate::ser::map::key_must_be_a_string;
         use std::collections::HashMap;
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
