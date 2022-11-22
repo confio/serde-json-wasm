@@ -530,6 +530,28 @@ fn key_must_be_a_string() -> Error {
     Error::Custom("JSON object key is required to be a string type.".to_string())
 }
 
+macro_rules! serialize_unsigned_key {
+    ($self:ident, $N:expr, $v:expr) => {{
+        let ser = $self.ser;
+        ser.buf.push(b'"');
+        let res: Result<Self::Ok> = serialize_unsigned!(ser, $N, $v);
+        res?;
+        ser.buf.push(b'"');
+        Ok(())
+    }};
+}
+
+macro_rules! serialize_signed_key {
+    ($self:ident, $N:expr, $v:expr, $ixx:ident, $uxx:ident) => {{
+        let ser = $self.ser;
+        ser.buf.push(b'"');
+        let res: Result<Self::Ok> = serialize_signed!(ser, $N, $v, $ixx, $uxx);
+        res?;
+        ser.buf.push(b'"');
+        Ok(())
+    }};
+}
+
 impl<'a> ser::Serializer for MapKeySerializer<'a> {
     type Ok = ();
     type Error = Error;
@@ -567,44 +589,44 @@ impl<'a> ser::Serializer for MapKeySerializer<'a> {
         value.serialize(self)
     }
 
-    fn serialize_i8(self, _value: i8) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_i8(self, value: i8) -> Result<()> {
+        serialize_signed_key!(self, 4, value, i8, u8)
     }
 
-    fn serialize_i16(self, _value: i16) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_i16(self, value: i16) -> Result<()> {
+        serialize_signed_key!(self, 6, value, i16, u16)
     }
 
-    fn serialize_i32(self, _value: i32) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_i32(self, value: i32) -> Result<()> {
+        serialize_signed_key!(self, 11, value, i32, u32)
     }
 
-    fn serialize_i64(self, _value: i64) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_i64(self, value: i64) -> Result<()> {
+        serialize_signed_key!(self, 20, value, i64, u64)
     }
 
-    fn serialize_i128(self, _value: i128) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_i128(self, value: i128) -> Result<()> {
+        serialize_signed_key!(self, 40, value, i128, u128)
     }
 
-    fn serialize_u8(self, _value: u8) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_u8(self, value: u8) -> Result<()> {
+        serialize_unsigned_key!(self, 3, value)
     }
 
-    fn serialize_u16(self, _value: u16) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_u16(self, value: u16) -> Result<()> {
+        serialize_unsigned_key!(self, 5, value)
     }
 
-    fn serialize_u32(self, _value: u32) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_u32(self, value: u32) -> Result<()> {
+        serialize_unsigned_key!(self, 10, value)
     }
 
-    fn serialize_u64(self, _value: u64) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_u64(self, value: u64) -> Result<()> {
+        serialize_unsigned_key!(self, 20, value)
     }
 
-    fn serialize_u128(self, _value: u128) -> Result<()> {
-        Err(key_must_be_a_string())
+    fn serialize_u128(self, value: u128) -> Result<()> {
+        serialize_unsigned_key!(self, 39, value)
     }
 
     fn serialize_f32(self, _value: f32) -> Result<()> {
@@ -1379,73 +1401,64 @@ mod tests {
     }
 
     #[test]
-    fn invalid_json_key() {
-        use crate::ser::key_must_be_a_string;
+    fn number_key() {
         use std::collections::HashMap;
 
         // i8 key
         let mut map = HashMap::new();
-        map.insert(1i8, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10i8, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // i16 key
         let mut map = HashMap::new();
-        map.insert(40i16, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10i16, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // i32 key
         let mut map = HashMap::new();
-        map.insert(40i32, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10i32, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // i64 key
         let mut map = HashMap::new();
-        map.insert(40i64, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10i64, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+
+        // i128 key
+        let mut map = HashMap::new();
+        map.insert(10i128, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // u8 key
         let mut map = HashMap::new();
-        map.insert(1u8, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10u8, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // u16 key
         let mut map = HashMap::new();
-        map.insert(40u16, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10u16, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // u32 key
         let mut map = HashMap::new();
-        map.insert(40u32, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10u32, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
 
         // u64 key
         let mut map = HashMap::new();
-        map.insert(40u64, "my_age");
-        assert_eq!(
-            to_string(&map).unwrap_err().to_string(),
-            key_must_be_a_string().to_string()
-        );
+        map.insert(10u64, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+
+        // u128 key
+        let mut map = HashMap::new();
+        map.insert(10u128, "my_age");
+        assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+    }
+
+    #[test]
+    fn invalid_json_key() {
+        use crate::ser::key_must_be_a_string;
+        use std::collections::HashMap;
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
         #[serde(rename_all = "lowercase")]
