@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this
 project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- Bump min supported Rust version to 1.59.0 (same as cosmwasm-std)
+- Upgrade codebase to Rust edition 2021
+
 ## [0.4.1] - 2022-05-05
 
 ### Changed
