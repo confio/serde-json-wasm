@@ -8,11 +8,13 @@ project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.4.1] - 2022-05-05
 
 ### Changed
+
 - Properly serialize `u128`/`i128` types when embedded in structs
 
 ## [0.4.0] - 2022-03-29
 
 ### Added
+
 - Add support for `#[serde(untagged)]` enums representation
 
 ## [0.3.1] - 2021-01-19
@@ -26,6 +28,7 @@ project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 Maintenance release:
+
 - Update clippy version in CI to 1.49.0.
 - Fix `clippy::manual-non-exhaustive` warnings.
 
