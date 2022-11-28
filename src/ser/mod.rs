@@ -1202,6 +1202,48 @@ mod tests {
     }
 
     #[test]
+    fn map_serialization_matches_json_serde() {
+        use std::collections::BTreeMap;
+
+        fn ser_actual<T: serde::Serialize + ?Sized>(value: &T) -> String {
+            to_string(value).unwrap()
+        }
+
+        fn ser_expected<T: serde::Serialize + ?Sized>(value: &T) -> String {
+            serde_json::to_string(value).unwrap()
+        }
+
+        let map = BTreeMap::<(), ()>::new();
+        assert_eq!(ser_actual(&map), ser_expected(&map));
+
+        let mut two_values = BTreeMap::new();
+        two_values.insert("my_name", "joseph");
+        two_values.insert("her_name", "aline");
+        assert_eq!(ser_actual(&two_values), ser_expected(&two_values));
+
+        let mut nested_map = BTreeMap::new();
+        nested_map.insert("two_entries", two_values.clone());
+        two_values.remove("my_name");
+        nested_map.insert("one_entry", two_values);
+        assert_eq!(ser_actual(&nested_map), ser_expected(&nested_map));
+
+        // One element with unit type
+        let mut map = BTreeMap::<&str, ()>::new();
+        map.insert("set_element", ());
+        assert_eq!(ser_actual(&map), ser_expected(&map));
+
+        // numeric keys
+        let mut map = BTreeMap::new();
+        map.insert(10i8, "my_age");
+        assert_eq!(ser_actual(&map), ser_expected(&map));
+
+        // numeric values
+        let mut scores = BTreeMap::new();
+        scores.insert("player A", 1234212);
+        assert_eq!(ser_actual(&scores), ser_expected(&scores));
+    }
+
+    #[test]
     fn number_key() {
         use std::collections::HashMap;
 
