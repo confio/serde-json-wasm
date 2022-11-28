@@ -1092,8 +1092,14 @@ mod tests {
     #[test]
     fn btree_map() {
         use std::collections::BTreeMap;
+
         // empty map
         assert_eq!(to_string(&BTreeMap::<(), ()>::new()).unwrap(), r#"{}"#);
+
+        // One element with unit type
+        let mut map = BTreeMap::<&str, ()>::new();
+        map.insert("set_element", ());
+        assert_eq!(to_string(&map).unwrap(), r#"{"set_element":null}"#);
 
         let mut two_values = BTreeMap::new();
         two_values.insert("my_name", "joseph");
