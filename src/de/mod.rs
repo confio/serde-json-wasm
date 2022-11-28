@@ -851,6 +851,8 @@ mod tests {
         assert!(from_str::<[i32; 2]>("[0, 1,]").is_err());
     }
 
+    #[allow(clippy::let_unit_value)]
+    #[allow(clippy::unit_cmp)]
     #[test]
     fn tuple() {
         type Pair = (i64, i64);
@@ -1421,18 +1423,18 @@ mod tests {
 
     #[test]
     fn deserialize_optional_vector() {
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Eq)]
         pub struct Response {
             pub log: Option<String>,
             pub messages: Vec<Msg>,
         }
 
-        #[derive(Debug, Deserialize, PartialEq, serde_derive::Serialize)]
+        #[derive(Debug, Deserialize, PartialEq, Eq, serde_derive::Serialize)]
         pub struct Msg {
             pub name: String,
         }
 
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Eq)]
         pub struct OptIn {
             pub name: Option<String>,
         }
@@ -1492,20 +1494,20 @@ mod tests {
 
     #[test]
     fn deserialize_embedded_enum() {
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Eq)]
         #[serde(rename_all = "lowercase")]
         pub enum MyResult {
             Ok(Response),
             Err(String),
         }
 
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Eq)]
         pub struct Response {
             pub log: Option<String>,
             pub messages: Vec<Msg>,
         }
 
-        #[derive(Debug, Deserialize, PartialEq)]
+        #[derive(Debug, Deserialize, PartialEq, Eq)]
         pub struct Msg {
             pub name: String,
             pub amount: Option<String>,

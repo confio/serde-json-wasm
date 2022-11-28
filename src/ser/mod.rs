@@ -696,6 +696,7 @@ mod tests {
             serde_json::to_string(&wrapped).unwrap()
         );
 
+        #[allow(clippy::let_unit_value)]
         let unit: Unit = ();
         assert_eq!(to_string(&unit).unwrap(), "null");
         assert_eq!(
@@ -1359,7 +1360,7 @@ mod tests {
     fn serialize_embedded_enum() {
         use serde_derive::Deserialize;
 
-        #[derive(Debug, Deserialize, Serialize, PartialEq)]
+        #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
         #[serde(rename_all = "lowercase")]
         pub enum MyResult {
             Unit(()),
@@ -1367,7 +1368,7 @@ mod tests {
             Err(String),
         }
 
-        #[derive(Debug, Deserialize, Serialize, PartialEq)]
+        #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
         pub struct Response {
             pub log: Option<String>,
             pub count: i64,
