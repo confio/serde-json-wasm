@@ -1327,12 +1327,94 @@ mod tests {
     #[test]
     fn numbered_key_maps() {
         use std::collections::BTreeMap;
+
+        // u8
+        let mut ranking: BTreeMap<u8, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<u8, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // u16
+        let mut ranking: BTreeMap<u16, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<u16, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // u32
+        let mut ranking: BTreeMap<u32, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<u32, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // u64
         let mut ranking: BTreeMap<u64, String> = BTreeMap::new();
         ranking.insert(1, "Elon".to_string());
         ranking.insert(2, "Bazos".to_string());
-
         assert_eq!(
             from_str::<BTreeMap<u64, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // u128
+        let mut ranking: BTreeMap<u128, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<u128, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // i8
+        let mut ranking: BTreeMap<i8, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<i8, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // i16
+        let mut ranking: BTreeMap<i16, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<i16, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // i32
+        let mut ranking: BTreeMap<i32, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<i32, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // i64
+        let mut ranking: BTreeMap<i64, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<i64, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
+            ranking
+        );
+
+        // i128
+        let mut ranking: BTreeMap<i128, String> = BTreeMap::new();
+        ranking.insert(1, "Elon".to_string());
+        ranking.insert(2, "Bazos".to_string());
+        assert_eq!(
+            from_str::<BTreeMap<i128, String>>(r#"{"1": "Elon", "2": "Bazos"}"#).unwrap(),
             ranking
         );
     }
