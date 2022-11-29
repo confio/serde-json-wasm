@@ -10,6 +10,9 @@ project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Add support for map (de)serialization.
+- Add support for `#[serde(flatten)]` (de)serialization ([#20]).
+
+[#20]: https://github.com/CosmWasm/serde-json-wasm/issues/20
 
 ### Changed
 
