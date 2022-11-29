@@ -733,7 +733,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::from_str;
-    use serde_derive::Deserialize;
+    use serde_derive::{Deserialize, Serialize};
 
     #[derive(Debug, Deserialize, PartialEq)]
     enum Type {
@@ -1244,6 +1244,39 @@ mod tests {
 
         assert_eq!(from_str(r#"null"#), Ok(Nothing));
         assert_eq!(serde_json::from_str::<Nothing>(r#"null"#).unwrap(), Nothing);
+    }
+
+    #[test]
+    fn struct_with_flatten() {
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+        struct Pagination {
+            limit: u64,
+            offset: u64,
+            total: u64,
+        }
+
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+        struct Users {
+            users: Vec<String>,
+
+            #[serde(flatten)]
+            pagination: Pagination,
+        }
+
+        let expected = Users {
+            users: vec!["joe".to_string(), "alice".to_string()],
+            pagination: Pagination {
+                offset: 100,
+                limit: 20,
+                total: 102,
+            },
+        };
+
+        assert_eq!(
+            from_str::<Users>(r#"{"users":["joe","alice"],"limit":20,"offset":100,"total":102}"#)
+                .unwrap(),
+            expected,
+        );
     }
 
     #[test]

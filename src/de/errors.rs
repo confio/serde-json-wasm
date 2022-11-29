@@ -5,7 +5,7 @@ use std::{error, fmt};
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// This type represents all possible errors that can occur when deserializing JSON data
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[non_exhaustive]
 pub enum Error {
     /// Control character (U+0000 to U+001F) found in string. Those must always be escaped.
