@@ -6,7 +6,7 @@
 A [serde-json] alternative for [CosmWasm] smart contracts.
 
 [serde-json]: https://crates.io/crates/serde_json
-[CosmWasm]: https://cosmwasm.com/
+[cosmwasm]: https://cosmwasm.com/
 
 ## License
 
