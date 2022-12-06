@@ -7,6 +7,8 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2022-12-06
+
 ### Added
 
 - Add support for map (de)serialization.
@@ -107,7 +109,8 @@ Initial release after forking from
 [serde-json-core](https://github.com/japaric/serde-json-core) at
 [bf5533a0](https://github.com/japaric/serde-json-core/commit/bf5533a042a0).
 
-[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.1...HEAD
+[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.3.1...v0.3.2
