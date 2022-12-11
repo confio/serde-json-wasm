@@ -7,6 +7,11 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add support for `str_collect` serialization.
+
+
 ## [0.5.0] - 2022-12-06
 
 ### Added
