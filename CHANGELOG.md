@@ -33,9 +33,17 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add support for `#[serde(untagged)]` enums representation
 
-## [0.3.2]
+## [0.3.2] - 2021-12-14
 
-Changelog missing, see diff link.
+### Added
+
+- Add support for u128/i128 serialization and deserialization ([#32],
+  [#33]).<br/> **Please note:** this is
+  [incompatible with serde-json and schemars](https://github.com/CosmWasm/cosmwasm/issues/1605)
+  and for this reason discouraged to use.
+
+[#32]: https://github.com/CosmWasm/serde-json-wasm/issues/32
+[#33]: https://github.com/CosmWasm/serde-json-wasm/pull/33
 
 ## [0.3.1] - 2021-01-19
 
