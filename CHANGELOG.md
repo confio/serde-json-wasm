@@ -10,6 +10,7 @@ project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Removed custom serde error formatting to avoid float inclusion. ([#42])
+- Add support for `str_collect` serialization.
 
 [#42]: https://github.com/CosmWasm/serde-json-wasm/issues/42
 

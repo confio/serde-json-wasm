@@ -429,11 +429,11 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         self.serialize_struct(name, len)
     }
 
-    fn collect_str<T: ?Sized>(self, _value: &T) -> Result<Self::Ok>
+    fn collect_str<T: ?Sized>(self, value: &T) -> Result<Self::Ok>
     where
         T: fmt::Display,
     {
-        unreachable!()
+        self.serialize_str(&value.to_string())
     }
 }
 
