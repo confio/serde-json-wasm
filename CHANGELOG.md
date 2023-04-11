@@ -9,8 +9,10 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Add support for `str_collect` serialization.
+- Add support for `collect_str` serialization ([#51], [#55]).
 
+[#51]: https://github.com/CosmWasm/serde-json-wasm/pull/51
+[#55]: https://github.com/CosmWasm/serde-json-wasm/pull/55
 
 ## [0.5.0] - 2022-12-06
 
