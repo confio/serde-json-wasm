@@ -464,36 +464,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     where
         T: fmt::Display + ?Sized,
     {
-        self.push(b'"')?;
-
-        let mut col = StringCollector::new(self);
-        fmt::write(&mut col, format_args!("{}", value)).or(Err(Error::BufferFull))?;
-
-        self.push(b'"')
-    }
-}
-
-struct StringCollector<'a> {
-    ser: &'a mut Serializer,
-}
-
-impl<'a> StringCollector<'a> {
-    pub fn new(ser: &'a mut Serializer) -> Self {
-        Self { ser }
-    }
-
-    fn do_write_str(&mut self, s: &str) -> Result<()> {
-        for c in s.chars() {
-            self.ser.push_char(c)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl<'a> fmt::Write for StringCollector<'a> {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.do_write_str(s).or(Err(fmt::Error))
+        self.serialize_str(&value.to_string())
     }
 }
 
@@ -528,7 +499,7 @@ impl ser::Error for Error {
 mod tests {
 
     use super::to_string;
-    use serde_derive::{Deserialize, Serialize};
+    use serde::{Deserialize, Serialize, Serializer};
 
     #[test]
     fn number() {
@@ -874,6 +845,32 @@ mod tests {
         assert_eq!(to_string(" \u{000e} ").unwrap(), r#"" \u000E ""#);
         assert_eq!(to_string(" \u{001D} ").unwrap(), r#"" \u001D ""#);
         assert_eq!(to_string(" \u{001f} ").unwrap(), r#"" \u001F ""#);
+    }
+
+    #[test]
+    fn collect_str_can_be_used_in_custom_seralize_impl() {
+        struct SpecialType {
+            count: u32,
+            on: bool,
+        }
+
+        impl Serialize for SpecialType {
+            // A custom Serialize implementation for SpecialType. SpecialType is giving us the chance to use
+            // an efficient collect_str implementation that is better than allocating the String and running
+            // serialize_str on it.
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                serializer.collect_str(&format_args!("{}-{}", self.count, self.on))
+            }
+        }
+
+        let value = SpecialType {
+            count: 123,
+            on: false,
+        };
+        assert_eq!(to_string(&value).unwrap(), r#""123-false""#);
     }
 
     #[test]
