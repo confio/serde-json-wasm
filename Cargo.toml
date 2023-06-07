@@ -23,7 +23,8 @@ exclude = [
 ]
 
 [features]
-no-std = []
+default = ["std"]
+std = []
 
 [dependencies]
 serde = { version = "^1.0.80", default-features = false, features = ["alloc"] }

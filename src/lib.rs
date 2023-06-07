@@ -54,10 +54,10 @@
 #![deny(missing_docs)]
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
-#![cfg_attr(feature = "no-std", no_std)]
-#![cfg_attr(feature = "no-std", feature(error_in_core))]
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(error_in_core))]
 
-#[cfg(feature = "no-std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 pub mod de;
