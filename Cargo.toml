@@ -22,6 +22,9 @@ exclude = [
     ".gitignore",
 ]
 
+[features]
+no-std = []
+
 [dependencies]
 serde = { version = "^1.0.80", default-features = false, features = ["alloc"] }
 

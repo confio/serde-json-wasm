@@ -1,4 +1,5 @@
-use std::convert::TryFrom;
+use crate::no_std::convert::TryFrom;
+use crate::no_std::prelude::*;
 
 use super::errors::{Error, Result};
 

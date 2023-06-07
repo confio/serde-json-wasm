@@ -1,10 +1,11 @@
 //! Serialize a Rust data structure into JSON data
 
-use std::{error, fmt};
+use crate::no_std::prelude::*;
+use crate::no_std::{error, fmt};
 
 use serde::ser;
 
-use std::vec::Vec;
+use crate::no_std::vec::Vec;
 
 use self::map::SerializeMap;
 use self::seq::SerializeSeq;

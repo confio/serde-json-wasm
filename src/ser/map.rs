@@ -1,4 +1,5 @@
-use std::fmt;
+use crate::no_std::fmt;
+use crate::no_std::prelude::*;
 
 use serde::{ser, Serialize};
 

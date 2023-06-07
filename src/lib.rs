@@ -54,8 +54,14 @@
 #![deny(missing_docs)]
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
+#![cfg_attr(feature = "no-std", no_std)]
+#![cfg_attr(feature = "no-std", feature(error_in_core))]
+
+#[cfg(feature = "no-std")]
+extern crate alloc;
 
 pub mod de;
+mod no_std;
 pub mod ser;
 
 #[doc(inline)]

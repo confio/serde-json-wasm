@@ -1,5 +1,6 @@
+use crate::no_std::prelude::*;
+use crate::no_std::{error, fmt};
 use serde::de;
-use std::{error, fmt};
 
 /// Deserialization result
 pub type Result<T> = core::result::Result<T, Error>;
