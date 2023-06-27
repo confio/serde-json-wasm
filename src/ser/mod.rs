@@ -501,6 +501,20 @@ mod tests {
     use super::to_string;
     use serde::{Deserialize, Serialize, Serializer};
 
+    #[macro_export]
+    macro_rules! assert_serde_json_serialize_eq {
+        ($target:expr,) => {
+            assert_serde_json_serialize_eq!($target);
+        };
+        ($target:expr) => {
+            assert_eq!(
+                $crate::to_string($target).unwrap(),
+                ::serde_json::to_string($target).unwrap(),
+                "Serialization does not match serde_json"
+            );
+        };
+    }
+
     #[test]
     fn number() {
         assert_eq!(to_string::<u8>(&0).unwrap(), "0");
@@ -594,6 +608,8 @@ mod tests {
             to_string::<u128>(&u128::MAX).unwrap(),
             r#""340282366920938463463374607431768211455""#
         );
+        // Currently failing, see https://github.com/CosmWasm/serde-json-wasm/issues/54
+        // assert_serde_json_serialize_eq!(&u128::MAX);
 
         assert_eq!(to_string::<i128>(&0).unwrap(), r#""0""#);
         assert_eq!(to_string::<i128>(&1).unwrap(), r#""1""#);
@@ -625,6 +641,8 @@ mod tests {
             to_string::<i128>(&i128::MIN).unwrap(),
             r#""-170141183460469231731687303715884105728""#
         );
+        // Currently failing, see https://github.com/CosmWasm/serde-json-wasm/issues/54
+        // assert_serde_json_serialize_eq!(&i128::MIN);
     }
 
     #[test]
@@ -654,25 +672,16 @@ mod tests {
 
         let pair: Pair = (1, 2);
         assert_eq!(to_string(&pair).unwrap(), "[1,2]");
-        assert_eq!(
-            to_string(&pair).unwrap(),
-            serde_json::to_string(&pair).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&pair);
 
         let wrapped: Wrapped = (5,);
         assert_eq!(to_string(&wrapped).unwrap(), "[5]");
-        assert_eq!(
-            to_string(&wrapped).unwrap(),
-            serde_json::to_string(&wrapped).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&wrapped);
 
         #[allow(clippy::let_unit_value)]
         let unit: Unit = ();
         assert_eq!(to_string(&unit).unwrap(), "null");
-        assert_eq!(
-            to_string(&unit).unwrap(),
-            serde_json::to_string(&unit).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&unit);
 
         type BigPair = (u128, u128);
 
@@ -682,6 +691,8 @@ mod tests {
             to_string(&pair).unwrap(),
             r#"["340282366920938463463374607431768211455","340282366920938463463374607431768211455"]"#
         );
+        // Currently failing, see https://github.com/CosmWasm/serde-json-wasm/issues/54
+        // assert_serde_json_serialize_eq!(&pair);
     }
 
     #[test]
@@ -693,10 +704,7 @@ mod tests {
             Exit,
         }
         assert_eq!(to_string(&Op::Exit).unwrap(), r#""Exit""#);
-        assert_eq!(
-            to_string(&Op::Exit).unwrap(),
-            serde_json::to_string(&Op::Exit).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Exit);
 
         // Numeric values are ignored 🤷
         #[derive(Serialize)]
@@ -705,15 +713,10 @@ mod tests {
             Ordered = 42,
         }
         assert_eq!(to_string(&Order::Unordered).unwrap(), r#""Unordered""#);
-        assert_eq!(
-            to_string(&Order::Unordered).unwrap(),
-            serde_json::to_string(&Order::Unordered).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Order::Unordered);
+
         assert_eq!(to_string(&Order::Ordered).unwrap(), r#""Ordered""#);
-        assert_eq!(
-            to_string(&Order::Ordered).unwrap(),
-            serde_json::to_string(&Order::Ordered).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Order::Ordered);
     }
 
     #[test]
@@ -725,20 +728,13 @@ mod tests {
             Add(i64, i64),
         }
         assert_eq!(to_string(&Op::Exit()).unwrap(), r#"{"Exit":[]}"#);
-        assert_eq!(
-            to_string(&Op::Exit()).unwrap(),
-            serde_json::to_string(&Op::Exit()).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Exit());
+
         assert_eq!(to_string(&Op::Square(2)).unwrap(), r#"{"Square":2}"#);
-        assert_eq!(
-            to_string(&Op::Square(2)).unwrap(),
-            serde_json::to_string(&Op::Square(2)).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Square(2));
+
         assert_eq!(to_string(&Op::Add(3, 4)).unwrap(), r#"{"Add":[3,4]}"#);
-        assert_eq!(
-            to_string(&Op::Add(3, 4)).unwrap(),
-            serde_json::to_string(&Op::Add(3, 4)).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Add(3, 4));
     }
 
     #[test]
@@ -750,26 +746,19 @@ mod tests {
             Add { a: i64, b: i64 },
         }
         assert_eq!(to_string(&Op::Exit {}).unwrap(), r#"{"Exit":{}}"#);
-        assert_eq!(
-            to_string(&Op::Exit {}).unwrap(),
-            serde_json::to_string(&Op::Exit {}).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Exit {});
+
         assert_eq!(
             to_string(&Op::Square { input: 2 }).unwrap(),
             r#"{"Square":{"input":2}}"#
         );
-        assert_eq!(
-            to_string(&Op::Square { input: 2 }).unwrap(),
-            serde_json::to_string(&Op::Square { input: 2 }).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Square { input: 2 });
+
         assert_eq!(
             to_string(&Op::Add { a: 3, b: 4 }).unwrap(),
             r#"{"Add":{"a":3,"b":4}}"#
         );
-        assert_eq!(
-            to_string(&Op::Add { a: 3, b: 4 }).unwrap(),
-            serde_json::to_string(&Op::Add { a: 3, b: 4 }).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Op::Add { a: 3, b: 4 });
     }
 
     #[test]
@@ -880,11 +869,16 @@ mod tests {
         #[derive(Serialize)]
         struct CommentId(u32);
 
+        // string
         assert_eq!(
             to_string(&Address("home".to_string())).unwrap(),
             r#""home""#
         );
+        assert_serde_json_serialize_eq!(&Address("home".to_string()));
+
+        // number
         assert_eq!(to_string(&CommentId(42)).unwrap(), r#"42"#);
+        assert_serde_json_serialize_eq!(&CommentId(42));
     }
 
     #[test]
@@ -895,6 +889,7 @@ mod tests {
         }
 
         assert_eq!(to_string(&Led { led: true }).unwrap(), r#"{"led":true}"#);
+        assert_serde_json_serialize_eq!(&Led { led: true });
     }
 
     #[test]
@@ -908,21 +903,19 @@ mod tests {
             to_string(&Temperature { temperature: 127 }).unwrap(),
             r#"{"temperature":127}"#
         );
-
         assert_eq!(
             to_string(&Temperature { temperature: 20 }).unwrap(),
             r#"{"temperature":20}"#
         );
-
         assert_eq!(
             to_string(&Temperature { temperature: -17 }).unwrap(),
             r#"{"temperature":-17}"#
         );
-
         assert_eq!(
             to_string(&Temperature { temperature: -128 }).unwrap(),
             r#"{"temperature":-128}"#
         );
+        assert_serde_json_serialize_eq!(&Temperature { temperature: -128 });
     }
 
     #[test]
@@ -984,12 +977,16 @@ mod tests {
             .unwrap(),
             r#"{"description":"An ambient temperature sensor"}"#
         );
+        assert_serde_json_serialize_eq!(&Property {
+            description: Some("An ambient temperature sensor"),
+        });
 
         // XXX Ideally this should produce "{}"
         assert_eq!(
             to_string(&Property { description: None }).unwrap(),
             r#"{"description":null}"#
         );
+        assert_serde_json_serialize_eq!(&Property { description: None });
     }
 
     #[test]
@@ -1003,6 +1000,7 @@ mod tests {
             to_string(&Temperature { temperature: 20 }).unwrap(),
             r#"{"temperature":20}"#
         );
+        assert_serde_json_serialize_eq!(&Temperature { temperature: 20 });
     }
 
     #[test]
@@ -1011,19 +1009,13 @@ mod tests {
         struct Nothing;
 
         assert_eq!(to_string(&Nothing).unwrap(), r#"null"#);
-        assert_eq!(
-            to_string(&Nothing).unwrap(),
-            serde_json::to_string(&Nothing).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Nothing);
 
         #[derive(Serialize)]
         struct Empty {}
 
         assert_eq!(to_string(&Empty {}).unwrap(), r#"{}"#);
-        assert_eq!(
-            to_string(&Empty {}).unwrap(),
-            serde_json::to_string(&Empty {}).unwrap()
-        );
+        assert_serde_json_serialize_eq!(&Empty {});
 
         #[derive(Serialize)]
         struct Tuple {
@@ -1035,6 +1027,7 @@ mod tests {
             to_string(&Tuple { a: true, b: false }).unwrap(),
             r#"{"a":true,"b":false}"#
         );
+        assert_serde_json_serialize_eq!(&Tuple { a: true, b: false });
     }
 
     #[test]
@@ -1116,11 +1109,7 @@ mod tests {
             to_string(&users).unwrap(),
             r#"{"users":["joe","alice"],"limit":20,"offset":100,"total":102}"#
         );
-        assert_eq!(
-            to_string(&users).unwrap(),
-            serde_json::to_string(&users).unwrap(),
-            "serialization must match serde_json implementation"
-        );
+        assert_serde_json_serialize_eq!(&users);
     }
 
     #[test]
@@ -1128,12 +1117,15 @@ mod tests {
         use std::collections::BTreeMap;
 
         // empty map
-        assert_eq!(to_string(&BTreeMap::<(), ()>::new()).unwrap(), r#"{}"#);
+        let empty = BTreeMap::<(), ()>::new();
+        assert_eq!(to_string(&empty).unwrap(), r#"{}"#);
+        assert_serde_json_serialize_eq!(&empty);
 
         // One element with unit type
         let mut map = BTreeMap::<&str, ()>::new();
         map.insert("set_element", ());
         assert_eq!(to_string(&map).unwrap(), r#"{"set_element":null}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         let mut two_values = BTreeMap::new();
         two_values.insert("my_name", "joseph");
@@ -1142,6 +1134,7 @@ mod tests {
             to_string(&two_values).unwrap(),
             r#"{"her_name":"aline","my_name":"joseph"}"#
         );
+        assert_serde_json_serialize_eq!(&two_values);
 
         let mut nested_map = BTreeMap::new();
         nested_map.insert("two_entries", two_values.clone());
@@ -1152,6 +1145,7 @@ mod tests {
             to_string(&nested_map).unwrap(),
             r#"{"one_entry":{"her_name":"aline"},"two_entries":{"her_name":"aline","my_name":"joseph"}}"#
         );
+        assert_serde_json_serialize_eq!(&nested_map);
     }
 
     #[test]
@@ -1197,12 +1191,15 @@ mod tests {
         use std::collections::HashMap;
 
         // empty map
-        assert_eq!(to_string(&HashMap::<(), ()>::new()).unwrap(), r#"{}"#);
+        let empty = HashMap::<(), ()>::new();
+        assert_eq!(to_string(&empty).unwrap(), r#"{}"#);
+        assert_serde_json_serialize_eq!(&empty);
 
         // One element
         let mut map = HashMap::new();
         map.insert("my_age", 28);
         assert_eq!(to_string(&map).unwrap(), r#"{"my_age":28}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
         pub struct NewType(String);
@@ -1211,6 +1208,7 @@ mod tests {
         let mut map = HashMap::new();
         map.insert(NewType(String::from("my_age")), 44);
         assert_eq!(to_string(&map).unwrap(), r#"{"my_age":44}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
         #[serde(rename_all = "lowercase")]
@@ -1222,6 +1220,7 @@ mod tests {
         let mut map = HashMap::new();
         map.insert(MyResult::Err, 404);
         assert_eq!(to_string(&map).unwrap(), r#"{"err":404}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // HashMap does not have deterministic iteration order (except in the Wasm target).
         // So the two element map is serialized as one of two options.
@@ -1233,48 +1232,7 @@ mod tests {
             serialized == r#"{"her_name":"aline","my_name":"joseph"}"#
                 || serialized == r#"{"my_name":"joseph","her_name":"aline"}"#
         );
-    }
-
-    #[test]
-    fn map_serialization_matches_json_serde() {
-        use std::collections::BTreeMap;
-
-        fn ser_actual<T: serde::Serialize + ?Sized>(value: &T) -> String {
-            to_string(value).unwrap()
-        }
-
-        fn ser_expected<T: serde::Serialize + ?Sized>(value: &T) -> String {
-            serde_json::to_string(value).unwrap()
-        }
-
-        let map = BTreeMap::<(), ()>::new();
-        assert_eq!(ser_actual(&map), ser_expected(&map));
-
-        let mut two_values = BTreeMap::new();
-        two_values.insert("my_name", "joseph");
-        two_values.insert("her_name", "aline");
-        assert_eq!(ser_actual(&two_values), ser_expected(&two_values));
-
-        let mut nested_map = BTreeMap::new();
-        nested_map.insert("two_entries", two_values.clone());
-        two_values.remove("my_name");
-        nested_map.insert("one_entry", two_values);
-        assert_eq!(ser_actual(&nested_map), ser_expected(&nested_map));
-
-        // One element with unit type
-        let mut map = BTreeMap::<&str, ()>::new();
-        map.insert("set_element", ());
-        assert_eq!(ser_actual(&map), ser_expected(&map));
-
-        // numeric keys
-        let mut map = BTreeMap::new();
-        map.insert(10i8, "my_age");
-        assert_eq!(ser_actual(&map), ser_expected(&map));
-
-        // numeric values
-        let mut scores = BTreeMap::new();
-        scores.insert("player A", 1234212);
-        assert_eq!(ser_actual(&scores), ser_expected(&scores));
+        assert_serde_json_serialize_eq!(&two_values);
     }
 
     #[test]
@@ -1285,16 +1243,19 @@ mod tests {
         let mut map = HashMap::new();
         map.insert(10i8, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // i16 key
         let mut map = HashMap::new();
         map.insert(10i16, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // i32 key
         let mut map = HashMap::new();
         map.insert(10i32, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // i64 key
         let mut map = HashMap::new();
@@ -1305,11 +1266,13 @@ mod tests {
         let mut map = HashMap::new();
         map.insert(10i128, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // u8 key
         let mut map = HashMap::new();
         map.insert(10u8, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // u16 key
         let mut map = HashMap::new();
@@ -1320,16 +1283,19 @@ mod tests {
         let mut map = HashMap::new();
         map.insert(10u32, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // u64 key
         let mut map = HashMap::new();
         map.insert(10u64, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
 
         // u128 key
         let mut map = HashMap::new();
         map.insert(10u128, "my_age");
         assert_eq!(to_string(&map).unwrap(), r#"{"10":"my_age"}"#);
+        assert_serde_json_serialize_eq!(&map);
     }
 
     #[test]
@@ -1413,12 +1379,14 @@ mod tests {
         assert_eq!(json, r#"{"err":"some error"}"#.to_string());
         let loaded = crate::from_str(&json).expect("re-load err enum");
         assert_eq!(err_input, loaded);
+        assert_serde_json_serialize_eq!(&err_input);
 
         let unit = MyResult::Unit(());
         let json = to_string(&unit).expect("encode unit enum");
         assert_eq!(json, r#"{"unit":null}"#.to_string());
         let loaded = crate::from_str(&json).expect("re-load unit enum");
         assert_eq!(unit, loaded);
+        assert_serde_json_serialize_eq!(&unit);
 
         let empty_list = MyResult::Ok(Response {
             log: Some("log message".to_string()),
@@ -1432,6 +1400,7 @@ mod tests {
         );
         let loaded = crate::from_str(&json).expect("re-load ok enum");
         assert_eq!(empty_list, loaded);
+        assert_serde_json_serialize_eq!(&empty_list);
 
         let full_list = MyResult::Ok(Response {
             log: None,
@@ -1445,5 +1414,6 @@ mod tests {
         );
         let loaded = crate::from_str(&json).expect("re-load ok enum");
         assert_eq!(full_list, loaded);
+        assert_serde_json_serialize_eq!(&full_list);
     }
 }
