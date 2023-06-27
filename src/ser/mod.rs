@@ -952,7 +952,6 @@ mod tests {
             description: Some("An ambient temperature sensor"),
         });
 
-        // XXX Ideally this should produce "{}"
         assert_eq!(
             to_string(&Property { description: None }).unwrap(),
             r#"{"description":null}"#
