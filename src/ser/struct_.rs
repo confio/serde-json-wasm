@@ -21,7 +21,6 @@ impl<'a> ser::SerializeStruct for SerializeStruct<'a> {
     where
         T: ser::Serialize + ?Sized,
     {
-        // XXX if `value` is `None` we not produce any output for this field
         if !self.first {
             self.ser.push(b',')?;
         }
@@ -61,7 +60,6 @@ impl<'a> ser::SerializeStructVariant for SerializeStructVariant<'a> {
     where
         T: ser::Serialize + ?Sized,
     {
-        // XXX if `value` is `None` we not produce any output for this field
         if !self.first {
             self.ser.push(b',')?;
         }
