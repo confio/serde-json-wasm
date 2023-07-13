@@ -56,7 +56,15 @@
 #![deny(missing_docs)]
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
-#![cfg_attr(not(feature = "std"), no_std)]
+// Note: Even though we declare the crate as `no_std`, by default `std` feature
+// is enabled which enables serde’s `std` feature which makes our dependency
+// non-`no_std`.  This `no_std` declaration only makes sure that our code
+// doesn’t depend on `std` directly (except for tests).
+#![no_std]
+
+extern crate alloc;
+#[cfg(test)]
+extern crate std;
 
 pub mod de;
 pub mod ser;
@@ -67,10 +75,14 @@ pub use self::ser::{to_string, to_vec};
 
 #[cfg(test)]
 mod test {
-    use std::collections::BTreeMap;
+    use alloc::borrow::ToOwned;
+    use alloc::collections::BTreeMap;
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     use super::*;
-    use serde_derive::{Deserialize, Serialize};
+    use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Deserialize, Serialize, PartialEq)]
     struct Address(String);
@@ -106,7 +118,7 @@ mod test {
     fn can_serde() {
         let min = Item {
             model: Model::Comment,
-            title: "".to_string(),
+            title: String::new(),
             content: None,
             list: vec![],
             published: false,

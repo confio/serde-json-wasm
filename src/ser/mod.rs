@@ -1,12 +1,11 @@
 //! Serialize a Rust data structure into JSON data
 
-use std::{error, fmt, str};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::{fmt, str};
 
 use serde::ser;
 use serde::ser::SerializeStruct as _;
-use serde::Serialize;
-
-use std::vec::Vec;
 
 use self::map::SerializeMap;
 use self::seq::SerializeSeq;
@@ -20,7 +19,12 @@ mod struct_;
 pub type Result<T> = ::core::result::Result<T, Error>;
 
 /// This type represents all possible errors that can occur when serializing JSON data
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+///
+/// It implements [`std::error::Error`] trait so long as either `std` or
+/// `unstable` features are enabled.  `std` is enabled by default and disabling
+/// it makes the crate `no_std`.  `unstable` makes sit necessary to build code
+/// with nightly compiler.
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
     /// Buffer is full
@@ -42,18 +46,10 @@ impl From<u8> for Error {
     }
 }
 
-impl error::Error for Error {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
-    }
+impl ser::StdError for Error {}
 
-    fn description(&self) -> &str {
-        "(use display)"
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Error::BufferFull => write!(f, "Buffer is full"),
             Error::Custom(msg) => write!(f, "{}", &msg),
@@ -479,18 +475,21 @@ where
 }
 
 impl ser::Error for Error {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: fmt::Display,
-    {
+    fn custom<T: core::fmt::Display>(msg: T) -> Self {
         Error::Custom(msg.to_string())
     }
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::to_string;
+
+    use alloc::collections::BTreeMap;
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use std::collections::HashMap;
+
     use serde::{Deserialize, Serialize, Serializer};
 
     #[macro_export]
@@ -1085,7 +1084,7 @@ mod tests {
         }
 
         let users = Users {
-            users: vec!["joe".to_string(), "alice".to_string()],
+            users: vec!["joe".into(), "alice".into()],
             pagination: Pagination {
                 offset: 100,
                 limit: 20,
@@ -1102,8 +1101,6 @@ mod tests {
 
     #[test]
     fn btree_map() {
-        use std::collections::BTreeMap;
-
         // empty map
         let empty = BTreeMap::<(), ()>::new();
         assert_eq!(to_string(&empty).unwrap(), r#"{}"#);
@@ -1225,8 +1222,6 @@ mod tests {
 
     #[test]
     fn number_key() {
-        use std::collections::HashMap;
-
         // i8 key
         let mut map = HashMap::new();
         map.insert(10i8, "my_age");
@@ -1289,7 +1284,6 @@ mod tests {
     #[test]
     fn invalid_json_key() {
         use crate::ser::map::key_must_be_a_string;
-        use std::collections::HashMap;
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
         #[serde(rename_all = "lowercase")]
@@ -1345,7 +1339,7 @@ mod tests {
 
     #[test]
     fn serialize_embedded_enum() {
-        use serde_derive::Deserialize;
+        use serde::Deserialize;
 
         #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
         #[serde(rename_all = "lowercase")]

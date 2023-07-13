@@ -6,16 +6,17 @@ mod map;
 mod seq;
 mod unescape;
 
+use alloc::string::String;
+
 pub use errors::{Error, Result};
 
-use std::str::{self, FromStr};
+use core::str::{self, FromStr};
 
 use serde::de::{self, Visitor};
 
 use self::enum_::{UnitVariantAccess, VariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
-use std::str::from_utf8;
 
 /// Deserializer will parse serde-json-wasm flavored JSON into a
 /// serde-annotated struct
@@ -131,7 +132,7 @@ impl<'a> Deserializer<'a> {
                             )?))
                         } else {
                             Ok(StringLike::Borrowed(
-                                from_utf8(&self.slice[start..end])
+                                core::str::from_utf8(&self.slice[start..end])
                                     .map_err(|_| Error::InvalidUnicodeCodePoint)?,
                             ))
                         };
@@ -697,7 +698,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::from_str;
-    use serde_derive::{Deserialize, Serialize};
+
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
+
+    use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Deserialize, PartialEq)]
     enum Type {
@@ -895,7 +901,7 @@ mod tests {
     fn integer() {
         assert_eq!(from_str("5"), Ok(5));
         assert_eq!(from_str("101"), Ok(101));
-        assert!(dbg!(from_str::<u16>("1e5")).is_err());
+        assert!(from_str::<u16>("1e5").is_err());
         assert!(from_str::<u8>("256").is_err());
         assert!(from_str::<f32>(",").is_err());
     }
@@ -1331,7 +1337,7 @@ mod tests {
 
     #[test]
     fn numbered_key_maps() {
-        use std::collections::BTreeMap;
+        use alloc::collections::BTreeMap;
 
         // u8
         let mut ranking: BTreeMap<u8, String> = BTreeMap::new();
@@ -1432,7 +1438,7 @@ mod tests {
             pub messages: Vec<Msg>,
         }
 
-        #[derive(Debug, Deserialize, PartialEq, Eq, serde_derive::Serialize)]
+        #[derive(Debug, Deserialize, PartialEq, Eq, serde::Serialize)]
         pub struct Msg {
             pub name: String,
         }

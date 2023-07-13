@@ -47,7 +47,6 @@ version = "0.5.1"
 dependencies = [
  "ryu",
  "serde",
- "serde_derive",
  "serde_json",
 ]
 

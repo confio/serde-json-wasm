@@ -1,5 +1,3 @@
-use std::fmt;
-
 use serde::{ser, Serialize};
 
 use crate::ser::{Error, Result, Serializer};
@@ -58,7 +56,7 @@ struct MapKeySerializer<'a> {
 }
 
 pub(crate) fn key_must_be_a_string() -> Error {
-    Error::Custom("JSON object key is required to be a string type.".to_string())
+    Error::Custom("JSON object key is required to be a string type.".into())
 }
 
 macro_rules! serialize_unsigned_key {
@@ -255,7 +253,7 @@ impl<'a> ser::Serializer for MapKeySerializer<'a> {
 
     fn collect_str<T>(self, _value: &T) -> Result<()>
     where
-        T: ?Sized + fmt::Display,
+        T: ?Sized + core::fmt::Display,
     {
         unreachable!()
     }

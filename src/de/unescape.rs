@@ -1,4 +1,6 @@
-use std::convert::TryFrom;
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::convert::TryFrom;
 
 use super::errors::{Error, Result};
 
