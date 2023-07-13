@@ -1,10 +1,17 @@
+use alloc::string::{String, ToString};
+
 use serde::de;
-use std::{error, fmt};
 
 /// Deserialization result
 pub type Result<T> = core::result::Result<T, Error>;
 
-/// This type represents all possible errors that can occur when deserializing JSON data
+/// This type represents all possible errors that can occur when deserializing
+/// JSON data
+///
+/// It implements [`std::error::Error`] trait so long as either `std` or
+/// `unstable` features are enabled.  `std` is enabled by default and disabling
+/// it makes the crate `no_std`.  `unstable` makes sit necessary to build code
+/// with nightly compiler.
 #[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Error {
@@ -72,27 +79,16 @@ pub enum Error {
     Custom(String),
 }
 
-impl error::Error for Error {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
-    }
-
-    fn description(&self) -> &str {
-        "(use display)"
-    }
-}
+impl de::StdError for Error {}
 
 impl de::Error for Error {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: fmt::Display,
-    {
+    fn custom<T: core::fmt::Display>(msg: T) -> Self {
         Error::Custom(msg.to_string())
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "{}",

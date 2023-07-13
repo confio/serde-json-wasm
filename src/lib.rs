@@ -54,7 +54,15 @@
 #![deny(missing_docs)]
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
-#![cfg_attr(not(feature = "std"), no_std)]
+// Note: Even though we declare the crate as `no_std`, by default `std` feature
+// is enabled which enables serde’s `std` feature which makes our dependency
+// non-`no_std`.  This `no_std` declaration only makes sure that our code
+// doesn’t depend on `std` directly (except for tests).
+#![no_std]
+
+extern crate alloc;
+#[cfg(test)]
+extern crate std;
 
 pub mod de;
 pub mod ser;
@@ -66,7 +74,11 @@ pub use self::ser::{to_string, to_vec};
 
 #[cfg(test)]
 mod test {
-    use std::collections::BTreeMap;
+    use alloc::borrow::ToOwned;
+    use alloc::collections::BTreeMap;
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
 
     use super::*;
     use serde_derive::{Deserialize, Serialize};
@@ -105,7 +117,7 @@ mod test {
     fn can_serde() {
         let min = Item {
             model: Model::Comment,
-            title: "".to_string(),
+            title: String::new(),
             content: None,
             list: vec![],
             published: false,
@@ -122,12 +134,12 @@ mod test {
             },
             title: "Nice message".to_string(),
             content: Some("Happy \"blogging\" 👏\n\n\tCheers, I'm out\0\0\0".to_string()),
-            list: vec![0, 1, 2, 3, 42, 154841, std::u32::MAX],
+            list: vec![0, 1, 2, 3, 42, 154841, u32::MAX],
             published: true,
             comments: vec![CommentId(2), CommentId(700)],
             stats: Stats {
-                views: std::u64::MAX,
-                score: std::i64::MIN,
+                views: u64::MAX,
+                score: i64::MIN,
             },
             balances,
         };
