@@ -171,71 +171,71 @@ mod tests {
     #[test]
     fn unescape_works() {
         // Unchanged because no unescaping happens
-        assert_eq!(ue(b""), "".to_string());
-        assert_eq!(ue(b"a"), "a".to_string());
-        assert_eq!(ue(b"ab"), "ab".to_string());
-        assert_eq!(ue(b"abc"), "abc".to_string());
-        assert_eq!(ue(b"a/c"), "a/c".to_string());
-        assert_eq!(ue(b"\x20"), " ".to_string()); // first non-control character
-        assert_eq!(ue(b"\xF0\x9F\x91\x8F"), "👏".to_string()); // U+1F44F
+        assert_eq!(ue(b""), "");
+        assert_eq!(ue(b"a"), "a");
+        assert_eq!(ue(b"ab"), "ab");
+        assert_eq!(ue(b"abc"), "abc");
+        assert_eq!(ue(b"a/c"), "a/c");
+        assert_eq!(ue(b"\x20"), " "); // first non-control character
+        assert_eq!(ue(b"\xF0\x9F\x91\x8F"), "👏"); // U+1F44F
 
         // even number of backslashes
-        assert_eq!(ue(br#"\\"#), "\\".to_string());
-        assert_eq!(ue(br#"\\\\"#), "\\\\".to_string());
-        assert_eq!(ue(br#"\\\\\\"#), "\\\\\\".to_string());
-        assert_eq!(ue(br#"\\\\\\\\"#), "\\\\\\\\".to_string());
+        assert_eq!(ue(br#"\\"#), "\\");
+        assert_eq!(ue(br#"\\\\"#), "\\\\");
+        assert_eq!(ue(br#"\\\\\\"#), "\\\\\\");
+        assert_eq!(ue(br#"\\\\\\\\"#), "\\\\\\\\");
 
         // The 8 short escape sequences \", \\, \/, \b, \f, \n, \r, \t (alone, start, end, middle)
-        assert_eq!(ue(br#"\""#), "\"".to_string());
-        assert_eq!(ue(br#"\\"#), "\\".to_string());
-        assert_eq!(ue(br#"\/"#), "/".to_string());
-        assert_eq!(ue(br#"\b"#), "\x08".to_string());
-        assert_eq!(ue(br#"\f"#), "\x0C".to_string());
-        assert_eq!(ue(br#"\n"#), "\n".to_string());
-        assert_eq!(ue(br#"\r"#), "\r".to_string());
-        assert_eq!(ue(br#"\t"#), "\t".to_string());
-        assert_eq!(ue(br#"\"abc"#), "\"abc".to_string());
-        assert_eq!(ue(br#"\\abc"#), "\\abc".to_string());
-        assert_eq!(ue(br#"\/abc"#), "/abc".to_string());
-        assert_eq!(ue(br#"\babc"#), "\x08abc".to_string());
-        assert_eq!(ue(br#"\fabc"#), "\x0Cabc".to_string());
-        assert_eq!(ue(br#"\nabc"#), "\nabc".to_string());
-        assert_eq!(ue(br#"\rabc"#), "\rabc".to_string());
-        assert_eq!(ue(br#"\tabc"#), "\tabc".to_string());
-        assert_eq!(ue(br#"abc\""#), "abc\"".to_string());
-        assert_eq!(ue(br#"abc\\"#), "abc\\".to_string());
-        assert_eq!(ue(br#"abc\/"#), "abc/".to_string());
-        assert_eq!(ue(br#"abc\b"#), "abc\x08".to_string());
-        assert_eq!(ue(br#"abc\f"#), "abc\x0C".to_string());
-        assert_eq!(ue(br#"abc\n"#), "abc\n".to_string());
-        assert_eq!(ue(br#"abc\r"#), "abc\r".to_string());
-        assert_eq!(ue(br#"abc\t"#), "abc\t".to_string());
-        assert_eq!(ue(br#"xy\"abc"#), "xy\"abc".to_string());
-        assert_eq!(ue(br#"xy\\abc"#), "xy\\abc".to_string());
-        assert_eq!(ue(br#"xy\/abc"#), "xy/abc".to_string());
-        assert_eq!(ue(br#"xy\babc"#), "xy\x08abc".to_string());
-        assert_eq!(ue(br#"xy\fabc"#), "xy\x0Cabc".to_string());
-        assert_eq!(ue(br#"xy\nabc"#), "xy\nabc".to_string());
-        assert_eq!(ue(br#"xy\rabc"#), "xy\rabc".to_string());
-        assert_eq!(ue(br#"xy\tabc"#), "xy\tabc".to_string());
+        assert_eq!(ue(br#"\""#), "\"");
+        assert_eq!(ue(br#"\\"#), "\\");
+        assert_eq!(ue(br#"\/"#), "/");
+        assert_eq!(ue(br#"\b"#), "\x08");
+        assert_eq!(ue(br#"\f"#), "\x0C");
+        assert_eq!(ue(br#"\n"#), "\n");
+        assert_eq!(ue(br#"\r"#), "\r");
+        assert_eq!(ue(br#"\t"#), "\t");
+        assert_eq!(ue(br#"\"abc"#), "\"abc");
+        assert_eq!(ue(br#"\\abc"#), "\\abc");
+        assert_eq!(ue(br#"\/abc"#), "/abc");
+        assert_eq!(ue(br#"\babc"#), "\x08abc");
+        assert_eq!(ue(br#"\fabc"#), "\x0Cabc");
+        assert_eq!(ue(br#"\nabc"#), "\nabc");
+        assert_eq!(ue(br#"\rabc"#), "\rabc");
+        assert_eq!(ue(br#"\tabc"#), "\tabc");
+        assert_eq!(ue(br#"abc\""#), "abc\"");
+        assert_eq!(ue(br#"abc\\"#), "abc\\");
+        assert_eq!(ue(br#"abc\/"#), "abc/");
+        assert_eq!(ue(br#"abc\b"#), "abc\x08");
+        assert_eq!(ue(br#"abc\f"#), "abc\x0C");
+        assert_eq!(ue(br#"abc\n"#), "abc\n");
+        assert_eq!(ue(br#"abc\r"#), "abc\r");
+        assert_eq!(ue(br#"abc\t"#), "abc\t");
+        assert_eq!(ue(br#"xy\"abc"#), "xy\"abc");
+        assert_eq!(ue(br#"xy\\abc"#), "xy\\abc");
+        assert_eq!(ue(br#"xy\/abc"#), "xy/abc");
+        assert_eq!(ue(br#"xy\babc"#), "xy\x08abc");
+        assert_eq!(ue(br#"xy\fabc"#), "xy\x0Cabc");
+        assert_eq!(ue(br#"xy\nabc"#), "xy\nabc");
+        assert_eq!(ue(br#"xy\rabc"#), "xy\rabc");
+        assert_eq!(ue(br#"xy\tabc"#), "xy\tabc");
 
         // Short escape sequences mixed
-        assert_eq!(ue(br#" \" \" \" "#), " \" \" \" ".to_string());
-        assert_eq!(ue(br#" \t \n \r "#), " \t \n \r ".to_string());
-        assert_eq!(ue(br#" \"\"\" "#), " \"\"\" ".to_string());
-        assert_eq!(ue(br#" \t\n\r "#), " \t\n\r ".to_string());
+        assert_eq!(ue(br#" \" \" \" "#), " \" \" \" ");
+        assert_eq!(ue(br#" \t \n \r "#), " \t \n \r ");
+        assert_eq!(ue(br#" \"\"\" "#), " \"\"\" ");
+        assert_eq!(ue(br#" \t\n\r "#), " \t\n\r ");
 
         // Unicode
-        assert_eq!(ue(br#" \u0001 "#), " \u{0001} ".to_string());
-        assert_eq!(ue(br#" \u0010 "#), " \u{0010} ".to_string());
-        assert_eq!(ue(br#" \u0100 "#), " \u{0100} ".to_string());
-        assert_eq!(ue(br#" \u1000 "#), " \u{1000} ".to_string());
-        assert_eq!(ue(br#" \uABCD "#), " \u{abcd} ".to_string());
-        assert_eq!(ue(br#" \uabcd "#), " \u{abcd} ".to_string());
-        assert_eq!(ue(br#" \uAbCd "#), " \u{abcd} ".to_string());
-        assert_eq!(ue(br#" \uABCDefg "#), " \u{abcd}efg ".to_string());
-        assert_eq!(ue(br#" \uabcdefg "#), " \u{abcd}efg ".to_string());
-        assert_eq!(ue(br#" \uAbCdefg "#), " \u{abcd}efg ".to_string());
+        assert_eq!(ue(br#" \u0001 "#), " \u{0001} ");
+        assert_eq!(ue(br#" \u0010 "#), " \u{0010} ");
+        assert_eq!(ue(br#" \u0100 "#), " \u{0100} ");
+        assert_eq!(ue(br#" \u1000 "#), " \u{1000} ");
+        assert_eq!(ue(br#" \uABCD "#), " \u{abcd} ");
+        assert_eq!(ue(br#" \uabcd "#), " \u{abcd} ");
+        assert_eq!(ue(br#" \uAbCd "#), " \u{abcd} ");
+        assert_eq!(ue(br#" \uABCDefg "#), " \u{abcd}efg ");
+        assert_eq!(ue(br#" \uabcdefg "#), " \u{abcd}efg ");
+        assert_eq!(ue(br#" \uAbCdefg "#), " \u{abcd}efg ");
     }
 
     #[test]
@@ -304,11 +304,11 @@ mod tests {
 
     #[test]
     fn unescape_works_for_surrogate_pairs() {
-        assert_eq!(ue(br#" \uD83D\uDC4F "#), " \u{1F44F} ".to_string());
-        assert_eq!(ue(br#" \uD83D\uDC4F\uD83D\uDC4F "#), " 👏👏 ".to_string());
+        assert_eq!(ue(br#" \uD83D\uDC4F "#), " \u{1F44F} ");
+        assert_eq!(ue(br#" \uD83D\uDC4F\uD83D\uDC4F "#), " 👏👏 ");
 
-        assert_eq!(ue(br#" \uD83E\uDD7A "#), " \u{1F97A} ".to_string());
-        assert_eq!(ue(br#" \uD83E\uDD7A\uD83D\uDC4F "#), " 🥺👏 ".to_string());
+        assert_eq!(ue(br#" \uD83E\uDD7A "#), " \u{1F97A} ");
+        assert_eq!(ue(br#" \uD83E\uDD7A\uD83D\uDC4F "#), " 🥺👏 ");
     }
 
     #[test]
