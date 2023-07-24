@@ -56,6 +56,7 @@
 #![deny(missing_docs)]
 #![deny(rust_2018_compatibility)]
 #![deny(rust_2018_idioms)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod de;
 pub mod ser;
