@@ -7,6 +7,14 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Serialize / deserialize `u128`/`i128` types as numbers instead of strings
+  ([#59]).<br/> **Please note:** this breaks deserialization of `u128`/`i128`
+  serialized with older versions of `serde-json-wasm`.
+
+[#59]: https://github.com/CosmWasm/serde-json-wasm/pull/59
+
 ## [0.5.1] - 2023-04-11
 
 ### Added

@@ -160,8 +160,7 @@ impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
     where
         V: Visitor<'de>,
     {
-        // default implementation includes string unparsing
-        self.de.deserialize_i128(visitor)
+        deserialize_signed_key!(self, visitor, i128, visit_i128)
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -196,7 +195,7 @@ impl<'de, 'a> de::Deserializer<'de> for MapKey<'a, 'de> {
     where
         V: Visitor<'de>,
     {
-        self.de.deserialize_u128(visitor)
+        deserialize_unsigned_key!(self, visitor, u128, visit_u128)
     }
 
     fn deserialize_f32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
