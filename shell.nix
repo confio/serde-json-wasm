@@ -6,7 +6,8 @@ let
     name = "check-no-std";
     runtimeInputs = [ rust-as-on-ci ];
     text = ''
-      cargo build --locked --no-default-features --target thumbv7em-none-eabi --package ${package}
+      cargo build --no-default-features --target thumbv7em-none-eabi --package ${package}
+      cargo build --no-default-features --target wasm32-unknown-unknown --package ${package}
     '';
   };
   check-wasm-std = pkgs.writeShellApplication rec {
