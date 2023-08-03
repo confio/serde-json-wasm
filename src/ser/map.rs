@@ -169,7 +169,8 @@ impl<'a> ser::Serializer for MapKeySerializer<'a> {
     }
 
     fn serialize_char(self, value: char) -> Result<()> {
-        self.ser.serialize_str(&value.to_string())
+        let mut buf = [0u8; 4];
+        self.ser.serialize_str(value.encode_utf8(&mut buf))
     }
 
     fn serialize_bytes(self, _value: &[u8]) -> Result<()> {
