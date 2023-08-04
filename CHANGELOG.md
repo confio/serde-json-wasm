@@ -13,7 +13,7 @@ project adheres to [Semantic Versioning](http://semver.org/).
   enable corresponding serde’s features and if either is enabled, `Error`
   implements `std::error::Error` trait.  By itself, `serde-json-wasm` is now
   `no_std`; it’s up to serde’s features whether the entire build is.  **Please
-  not:** this potentially breaks `default-features = false` builds.
+  note:** this potentially breaks `default-features = false` builds.
 
 - Serialize / deserialize `u128`/`i128` types as numbers instead of strings
   ([#59]).<br/> **Please note:** this breaks deserialization of `u128`/`i128`
