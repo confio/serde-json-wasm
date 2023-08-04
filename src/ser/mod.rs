@@ -1248,14 +1248,14 @@ mod tests {
 
         let err_input = MyResult::Err("some error".to_string());
         let json = to_string(&err_input).expect("encode err enum");
-        assert_eq!(json, r#"{"err":"some error"}"#.to_string());
+        assert_eq!(json, r#"{"err":"some error"}"#);
         let loaded = crate::from_str(&json).expect("re-load err enum");
         assert_eq!(err_input, loaded);
         assert_serde_json_serialize_eq!(&err_input);
 
         let unit = MyResult::Unit(());
         let json = to_string(&unit).expect("encode unit enum");
-        assert_eq!(json, r#"{"unit":null}"#.to_string());
+        assert_eq!(json, r#"{"unit":null}"#);
         let loaded = crate::from_str(&json).expect("re-load unit enum");
         assert_eq!(unit, loaded);
         assert_serde_json_serialize_eq!(&unit);
@@ -1268,7 +1268,7 @@ mod tests {
         let json = to_string(&empty_list).expect("encode ok enum");
         assert_eq!(
             json,
-            r#"{"ok":{"log":"log message","count":137,"list":[]}}"#.to_string()
+            r#"{"ok":{"log":"log message","count":137,"list":[]}}"#
         );
         let loaded = crate::from_str(&json).expect("re-load ok enum");
         assert_eq!(empty_list, loaded);
@@ -1280,10 +1280,7 @@ mod tests {
             list: vec![18u32, 34, 12],
         });
         let json = to_string(&full_list).expect("encode ok enum");
-        assert_eq!(
-            json,
-            r#"{"ok":{"log":null,"count":137,"list":[18,34,12]}}"#.to_string()
-        );
+        assert_eq!(json, r#"{"ok":{"log":null,"count":137,"list":[18,34,12]}}"#);
         let loaded = crate::from_str(&json).expect("re-load ok enum");
         assert_eq!(full_list, loaded);
         assert_serde_json_serialize_eq!(&full_list);
