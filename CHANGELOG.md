@@ -7,13 +7,16 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2023-08-04
+
 ### Changed
 
 - Introduce `std` (enabled by default) and `unstable` features ([#58]).  They
   enable corresponding serde’s features and if either is enabled, `Error`
   implements `std::error::Error` trait.  By itself, `serde-json-wasm` is now
-  `no_std`; it’s up to serde’s features whether the entire build is.  **Please
+  `no_std`; it’s up to serde’s features whether the entire build is.<br/> **Please
   note:** this potentially breaks `default-features = false` builds.
+  If you need the `Error` trait impl, enable one of the two features explicitly.
 
 - Serialize / deserialize `u128`/`i128` types as numbers instead of strings
   ([#59]).<br/> **Please note:** this breaks deserialization of `u128`/`i128`
@@ -141,7 +144,8 @@ Initial release after forking from
 [serde-json-core](https://github.com/japaric/serde-json-core) at
 [bf5533a0](https://github.com/japaric/serde-json-core/commit/bf5533a042a0).
 
-[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.1...v1.0.0
 [0.5.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.0...v0.4.1
