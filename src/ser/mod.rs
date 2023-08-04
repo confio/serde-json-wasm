@@ -1,10 +1,9 @@
 //! Serialize a Rust data structure into JSON data
 
-use std::{error, fmt};
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 use serde::ser;
-
-use std::vec::Vec;
 
 use self::map::SerializeMap;
 use self::seq::SerializeSeq;
@@ -18,6 +17,11 @@ mod struct_;
 pub type Result<T> = ::core::result::Result<T, Error>;
 
 /// This type represents all possible errors that can occur when serializing JSON data
+///
+/// It implements [`std::error::Error`] trait so long as either `std` or
+/// `unstable` features are enabled.  `std` is enabled by default and disabling
+/// it makes the crate `no_std`.  `unstable` makes it necessary to build code
+/// with nightly compiler.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
@@ -40,18 +44,10 @@ impl From<u8> for Error {
     }
 }
 
-impl error::Error for Error {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
-    }
+impl ser::StdError for Error {}
 
-    fn description(&self) -> &str {
-        "(use display)"
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Error::BufferFull => write!(f, "Buffer is full"),
             Error::Custom(msg) => write!(f, "{}", &msg),
@@ -443,10 +439,7 @@ where
 }
 
 impl ser::Error for Error {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: fmt::Display,
-    {
+    fn custom<T: core::fmt::Display>(msg: T) -> Self {
         Error::Custom(msg.to_string())
     }
 }
@@ -522,8 +515,14 @@ impl ser::SerializeStructVariant for Unreachable {
 
 #[cfg(test)]
 mod tests {
-
     use super::to_string;
+
+    use alloc::collections::BTreeMap;
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use std::collections::HashMap;
+
     use serde::{Serialize, Serializer};
     use serde_derive::{Deserialize, Serialize};
 
@@ -551,37 +550,37 @@ mod tests {
     fn number() {
         assert_eq!(to_string::<u8>(&0).unwrap(), "0");
         assert_eq!(to_string::<u8>(&1).unwrap(), "1");
-        assert_eq!(to_string::<u8>(&std::u8::MAX).unwrap(), "255");
+        assert_eq!(to_string::<u8>(&u8::MAX).unwrap(), "255");
 
         assert_eq!(to_string::<i8>(&0).unwrap(), "0");
         assert_eq!(to_string::<i8>(&1).unwrap(), "1");
         assert_eq!(to_string::<i8>(&127).unwrap(), "127");
         assert_eq!(to_string::<i8>(&-1).unwrap(), "-1");
-        assert_eq!(to_string::<i8>(&std::i8::MIN).unwrap(), "-128");
+        assert_eq!(to_string::<i8>(&i8::MIN).unwrap(), "-128");
 
         assert_eq!(to_string::<u16>(&0).unwrap(), "0");
         assert_eq!(to_string::<u16>(&1).unwrap(), "1");
         assert_eq!(to_string::<u16>(&550).unwrap(), "550");
-        assert_eq!(to_string::<u16>(&std::u16::MAX).unwrap(), "65535");
+        assert_eq!(to_string::<u16>(&u16::MAX).unwrap(), "65535");
 
         assert_eq!(to_string::<i16>(&0).unwrap(), "0");
         assert_eq!(to_string::<i16>(&1).unwrap(), "1");
         assert_eq!(to_string::<i16>(&550).unwrap(), "550");
-        assert_eq!(to_string::<i16>(&std::i16::MAX).unwrap(), "32767");
+        assert_eq!(to_string::<i16>(&i16::MAX).unwrap(), "32767");
         assert_eq!(to_string::<i16>(&-1).unwrap(), "-1");
-        assert_eq!(to_string::<i16>(&std::i16::MIN).unwrap(), "-32768");
+        assert_eq!(to_string::<i16>(&i16::MIN).unwrap(), "-32768");
 
         assert_eq!(to_string::<u32>(&0).unwrap(), "0");
         assert_eq!(to_string::<u32>(&1).unwrap(), "1");
         assert_eq!(to_string::<u32>(&456789).unwrap(), "456789");
-        assert_eq!(to_string::<u32>(&std::u32::MAX).unwrap(), "4294967295");
+        assert_eq!(to_string::<u32>(&u32::MAX).unwrap(), "4294967295");
 
         assert_eq!(to_string::<i32>(&0).unwrap(), "0");
         assert_eq!(to_string::<i32>(&1).unwrap(), "1");
         assert_eq!(to_string::<i32>(&456789).unwrap(), "456789");
-        assert_eq!(to_string::<i32>(&std::i32::MAX).unwrap(), "2147483647");
+        assert_eq!(to_string::<i32>(&i32::MAX).unwrap(), "2147483647");
         assert_eq!(to_string::<i32>(&-1).unwrap(), "-1");
-        assert_eq!(to_string::<i32>(&std::i32::MIN).unwrap(), "-2147483648");
+        assert_eq!(to_string::<i32>(&i32::MIN).unwrap(), "-2147483648");
 
         assert_eq!(to_string::<u64>(&0).unwrap(), "0");
         assert_eq!(to_string::<u64>(&1).unwrap(), "1");
@@ -596,10 +595,7 @@ mod tests {
             to_string::<u64>(&9007199254740992).unwrap(),
             "9007199254740992"
         ); // Number.MAX_SAFE_INTEGER+1
-        assert_eq!(
-            to_string::<u64>(&std::u64::MAX).unwrap(),
-            "18446744073709551615"
-        );
+        assert_eq!(to_string::<u64>(&u64::MAX).unwrap(), "18446744073709551615");
 
         assert_eq!(to_string::<i64>(&0).unwrap(), "0");
         assert_eq!(to_string::<i64>(&1).unwrap(), "1");
@@ -614,15 +610,9 @@ mod tests {
             to_string::<i64>(&9007199254740992).unwrap(),
             "9007199254740992"
         ); // Number.MAX_SAFE_INTEGER+1
-        assert_eq!(
-            to_string::<i64>(&std::i64::MAX).unwrap(),
-            "9223372036854775807"
-        );
+        assert_eq!(to_string::<i64>(&i64::MAX).unwrap(), "9223372036854775807");
         assert_eq!(to_string::<i64>(&-1).unwrap(), "-1");
-        assert_eq!(
-            to_string::<i64>(&std::i64::MIN).unwrap(),
-            "-9223372036854775808"
-        );
+        assert_eq!(to_string::<i64>(&i64::MIN).unwrap(), "-9223372036854775808");
 
         assert_eq!(to_string::<u128>(&0).unwrap(), r#"0"#);
         assert_eq!(to_string::<u128>(&1).unwrap(), r#"1"#);
@@ -711,7 +701,7 @@ mod tests {
 
         type BigPair = (u128, u128);
 
-        let pair: BigPair = (std::u128::MAX, std::u128::MAX);
+        let pair: BigPair = (u128::MAX, u128::MAX);
 
         assert_eq!(
             to_string(&pair).unwrap(),
@@ -1007,7 +997,7 @@ mod tests {
         }
 
         let users = Users {
-            users: vec!["joe".to_string(), "alice".to_string()],
+            users: vec!["joe".into(), "alice".into()],
             pagination: Pagination {
                 offset: 100,
                 limit: 20,
@@ -1024,8 +1014,6 @@ mod tests {
 
     #[test]
     fn btree_map() {
-        use std::collections::BTreeMap;
-
         // empty map
         let empty = BTreeMap::<(), ()>::new();
         assert_eq!(to_string(&empty).unwrap(), r#"{}"#);
@@ -1060,8 +1048,6 @@ mod tests {
 
     #[test]
     fn hash_map() {
-        use std::collections::HashMap;
-
         // empty map
         let empty = HashMap::<(), ()>::new();
         assert_eq!(to_string(&empty).unwrap(), r#"{}"#);
@@ -1109,8 +1095,6 @@ mod tests {
 
     #[test]
     fn number_key() {
-        use std::collections::HashMap;
-
         // i8 key
         let mut map = HashMap::new();
         map.insert(10i8, "my_age");
@@ -1173,7 +1157,6 @@ mod tests {
     #[test]
     fn invalid_json_key() {
         use crate::ser::map::key_must_be_a_string;
-        use std::collections::HashMap;
 
         #[derive(Debug, Serialize, PartialEq, Eq, Hash)]
         #[serde(rename_all = "lowercase")]

@@ -6,6 +6,8 @@ mod map;
 mod seq;
 mod unescape;
 
+use alloc::string::String;
+
 pub use errors::{Error, Result};
 
 use serde::de::{self, Visitor};
@@ -13,7 +15,6 @@ use serde::de::{self, Visitor};
 use self::enum_::{StructVariantAccess, UnitVariantAccess};
 use self::map::MapAccess;
 use self::seq::SeqAccess;
-use std::str::from_utf8;
 
 /// Deserializer will parse serde-json-wasm flavored JSON into a
 /// serde-annotated struct
@@ -126,7 +127,7 @@ impl<'a> Deserializer<'a> {
                             )?))
                         } else {
                             Ok(StringLike::Borrowed(
-                                from_utf8(&self.slice[start..end])
+                                core::str::from_utf8(&self.slice[start..end])
                                     .map_err(|_| Error::InvalidUnicodeCodePoint)?,
                             ))
                         };
@@ -651,6 +652,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::from_str;
+
+    use alloc::string::{String, ToString};
+    use alloc::vec;
+    use alloc::vec::Vec;
+
     use serde_derive::{Deserialize, Serialize};
 
     #[derive(Debug, Deserialize, PartialEq)]
@@ -1103,7 +1109,7 @@ mod tests {
 
     #[test]
     fn numbered_key_maps() {
-        use std::collections::BTreeMap;
+        use alloc::collections::BTreeMap;
 
         // u8
         let mut ranking: BTreeMap<u8, String> = BTreeMap::new();
