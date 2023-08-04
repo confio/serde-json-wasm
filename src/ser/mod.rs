@@ -22,7 +22,7 @@ pub type Result<T> = ::core::result::Result<T, Error>;
 ///
 /// It implements [`std::error::Error`] trait so long as either `std` or
 /// `unstable` features are enabled.  `std` is enabled by default and disabling
-/// it makes the crate `no_std`.  `unstable` makes sit necessary to build code
+/// it makes the crate `no_std`.  `unstable` makes it necessary to build code
 /// with nightly compiler.
 #[derive(Debug)]
 #[non_exhaustive]
