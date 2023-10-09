@@ -444,21 +444,20 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         }
     }
 
-    /// Unsupported
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value>
-    where
-        V: Visitor<'de>,
+        where
+            V: Visitor<'de>,
     {
         self.index = self.slice.len();
-        visitor.visit_bytes(&self.slice)
+        visitor.visit_bytes(self.slice)
     }
 
-    /// Unsupported
-    fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value>
-    where
-        V: Visitor<'de>,
+    fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value>
+        where
+            V: Visitor<'de>,
     {
-        unreachable!()
+        self.index = self.slice.len();
+        visitor.visit_byte_buf(self.slice.to_vec())
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>
