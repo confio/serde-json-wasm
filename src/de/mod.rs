@@ -449,7 +449,8 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_bytes(&self.slice[self.index..])
+        self.index = self.slice.len();
+        visitor.visit_bytes(&self.slice)
     }
 
     /// Unsupported
