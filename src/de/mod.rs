@@ -23,6 +23,9 @@ use self::seq::SeqAccess;
 pub struct Deserializer<'b> {
     slice: &'b [u8],
     index: usize,
+
+    /// Remaining depth until we hit the recursion limit
+    remaining_depth: u8,
 }
 
 enum StringLike<'a> {
@@ -31,9 +34,12 @@ enum StringLike<'a> {
 }
 
 impl<'a> Deserializer<'a> {
-    /// Create a new `Deserializer`
-    pub fn new(slice: &'a [u8]) -> Deserializer<'_> {
-        Deserializer { slice, index: 0 }
+    fn new(slice: &'a [u8]) -> Deserializer<'_> {
+        Deserializer {
+            slice,
+            index: 0,
+            remaining_depth: 128,
+        }
     }
 
     fn eat_char(&mut self) {
@@ -323,16 +329,22 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
                 }
             }
             b'[' => {
-                self.eat_char();
-                let ret = visitor.visit_seq(SeqAccess::new(self))?;
+                check_recursion! {
+                    self.eat_char();
+                    let ret = visitor.visit_seq(SeqAccess::new(self));
+                }
+                let ret = ret?;
 
                 self.end_seq()?;
 
                 Ok(ret)
             }
             b'{' => {
-                self.eat_char();
-                let ret = visitor.visit_map(MapAccess::new(self))?;
+                check_recursion! {
+                    self.eat_char();
+                    let ret = visitor.visit_map(MapAccess::new(self));
+                }
+                let ret = ret?;
 
                 self.end_map()?;
 
@@ -553,8 +565,11 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         match self.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
             b'[' => {
-                self.eat_char();
-                let ret = visitor.visit_seq(SeqAccess::new(self))?;
+                check_recursion! {
+                    self.eat_char();
+                    let ret = visitor.visit_seq(SeqAccess::new(self));
+                }
+                let ret = ret?;
 
                 self.end_seq()?;
 
@@ -590,9 +605,11 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         let peek = self.parse_whitespace().ok_or(Error::EofWhileParsingValue)?;
 
         if peek == b'{' {
-            self.eat_char();
-
-            let ret = visitor.visit_map(MapAccess::new(self))?;
+            check_recursion! {
+                self.eat_char();
+                let ret = visitor.visit_map(MapAccess::new(self));
+            }
+            let ret = ret?;
 
             self.end_map()?;
 
@@ -627,8 +644,11 @@ impl<'a, 'de> de::Deserializer<'de> for &'a mut Deserializer<'de> {
             // if it is a string enum
             b'"' => visitor.visit_enum(UnitVariantAccess::new(self)),
             b'{' => {
-                self.eat_char();
-                let value = visitor.visit_enum(VariantAccess::new(self))?;
+                check_recursion! {
+                    self.eat_char();
+                    let value = visitor.visit_enum(VariantAccess::new(self))?;
+                }
+
                 match self.parse_whitespace().ok_or(Error::EofWhileParsingValue)? {
                     b'}' => {
                         self.eat_char();
@@ -694,6 +714,20 @@ where
 {
     from_slice(s.as_bytes())
 }
+
+macro_rules! check_recursion {
+    ($this:ident $($body:tt)*) => {
+        $this.remaining_depth -= 1;
+        if $this.remaining_depth == 0 {
+            return Err($crate::de::Error::RecursionLimitExceeded);
+        }
+
+        $this $($body)*
+
+        $this.remaining_depth += 1;
+    };
+}
+pub(crate) use check_recursion;
 
 #[cfg(test)]
 mod tests {
