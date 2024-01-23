@@ -9,6 +9,8 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.5.2] - 2024-01-23
 
+### Changed
+
 - Add recursion limit to deserialization ([#64]).
 
 [#64]: https://github.com/CosmWasm/serde-json-wasm/pull/64
