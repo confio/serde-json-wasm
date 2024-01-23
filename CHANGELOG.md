@@ -7,16 +7,24 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.1] - 2024-01-23
+
+### Changed
+
+- Add recursion limit to deserialization ([#65]).
+
+[#65]: https://github.com/CosmWasm/serde-json-wasm/pull/65
+
 ## [1.0.0] - 2023-08-04
 
 ### Changed
 
-- Introduce `std` (enabled by default) and `unstable` features ([#58]).  They
+- Introduce `std` (enabled by default) and `unstable` features ([#58]). They
   enable corresponding serde’s features and if either is enabled, `Error`
-  implements `std::error::Error` trait.  By itself, `serde-json-wasm` is now
-  `no_std`; it’s up to serde’s features whether the entire build is.<br/> **Please
-  note:** this potentially breaks `default-features = false` builds.
-  If you need the `Error` trait impl, enable one of the two features explicitly.
+  implements `std::error::Error` trait. By itself, `serde-json-wasm` is now
+  `no_std`; it’s up to serde’s features whether the entire build is.<br/>
+  **Please note:** this potentially breaks `default-features = false` builds. If
+  you need the `Error` trait impl, enable one of the two features explicitly.
 
 - Serialize / deserialize `u128`/`i128` types as numbers instead of strings
   ([#59]).<br/> **Please note:** this breaks deserialization of `u128`/`i128`
