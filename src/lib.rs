@@ -227,4 +227,29 @@ mod test {
             item
         );
     }
+
+    #[test]
+    fn no_stack_overflow() {
+        const AMOUNT: usize = 2000;
+        let mut json = String::from(r#"{"":"#);
+
+        #[derive(Debug, Deserialize, Serialize)]
+        pub struct Person {
+            name: String,
+            age: u8,
+            phones: Vec<String>,
+        }
+
+        for _ in 0..AMOUNT {
+            json.push('[');
+        }
+        for _ in 0..AMOUNT {
+            json.push(']');
+        }
+
+        json.push_str(r#"]        }[[[[[[[[[[[[[[[[[[[[[   ""","age":35,"phones":["#);
+
+        let err = from_str::<Person>(&json).unwrap_err();
+        assert_eq!(err, crate::de::Error::RecursionLimitExceeded);
+    }
 }
