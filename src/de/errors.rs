@@ -68,6 +68,9 @@ pub enum Error {
     /// JSON has a comma after the last value in an array or map.
     TrailingComma,
 
+    /// JSON is nested too deeply, exceeeded the recursion limit.
+    RecursionLimitExceeded,
+
     /// Custom error message from serde
     Custom(String),
 }
@@ -132,6 +135,7 @@ impl fmt::Display for Error {
                      value."
                 }
                 Error::TrailingComma => "JSON has a comma after the last value in an array or map.",
+                Error::RecursionLimitExceeded => "JSON is nested too deeply, exceeeded the recursion limit.",
                 Error::Custom(msg) => msg,
             }
         )
