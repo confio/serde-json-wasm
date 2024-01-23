@@ -7,6 +7,12 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.2] - 2024-01-23
+
+- Add recursion limit to deserialization ([#64]).
+
+[#64]: https://github.com/CosmWasm/serde-json-wasm/pull/64
+
 ## [0.5.1] - 2023-04-11
 
 ### Added
@@ -126,7 +132,8 @@ Initial release after forking from
 [serde-json-core](https://github.com/japaric/serde-json-core) at
 [bf5533a0](https://github.com/japaric/serde-json-core/commit/bf5533a042a0).
 
-[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.0...v0.4.1
