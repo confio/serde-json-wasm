@@ -152,7 +152,8 @@ Initial release after forking from
 [serde-json-core](https://github.com/japaric/serde-json-core) at
 [bf5533a0](https://github.com/japaric/serde-json-core/commit/bf5533a042a0).
 
-[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/CosmWasm/serde-json-wasm/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.1...v1.0.0
 [0.5.1]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/CosmWasm/serde-json-wasm/compare/v0.4.1...v0.5.0
